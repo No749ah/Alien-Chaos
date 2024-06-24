@@ -7,19 +7,22 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Cookie Clicker Clone',
-      home: MyHomePage(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({key});
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -34,35 +37,50 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     dbHelper = DatabaseHelper.instance;
+    print('DatabaseHelper initialized');
     _loadUser();
   }
 
   Future<void> _loadUser() async {
-    final users = await dbHelper.fetchUsers();
-    if (users.isNotEmpty) {
-      setState(() {
-        _user = User.fromMap(users.first);
-        _cookies = _user!.cookies;
-      });
-    } else {
-      User user = User(name: 'Player', cookies: 0);
-      await dbHelper.insertUser(user.toMap());
-      _loadUser();
+    try {
+      final users = await dbHelper.fetchUsers();
+      print('Users fetched: $users');
+      if (users.isNotEmpty) {
+        setState(() {
+          _user = User.fromMap(users.first);
+          _cookies = _user!.cookies;
+          print('User loaded: $_user');
+        });
+      } else {
+        User user = User(name: 'Player', cookies: 0);
+        await dbHelper.insertUser(user.toMap());
+        print('New user inserted');
+        _loadUser();
+      }
+    } catch (e) {
+      print('Error loading user: $e');
     }
   }
 
   Future<void> _incrementCookies() async {
-    setState(() {
-      _cookies++;
-    });
-    _user = _user?.copyWith(cookies: _cookies);
-    if (_user != null) {
-      await dbHelper.updateUser(_user!.toMap());
+    try {
+      setState(() {
+        _cookies++;
+        print('Cookies incremented: $_cookies');
+      });
+      _user = _user?.copyWith(cookies: _cookies);
+      if (_user != null) {
+        await dbHelper.updateUser(_user!.toMap());
+        print('User updated: $_user');
+      }
+    } catch (e) {
+      print('Error incrementing cookies: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('Building widget tree');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cookie Clicker Clone'),
@@ -73,11 +91,17 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Text(
               'Cookies: $_cookies',
-              style: Theme.of(context).textTheme.headlineLarge,
+              style: const TextStyle(
+                fontSize: 24,
+                color: Colors.black,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _incrementCookies,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
+              ),
               child: const Text('Click me!'),
             ),
           ],
