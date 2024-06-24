@@ -10,7 +10,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('sample.db');
+    _database = await _initDB('cookieclicker.db');
     return _database!;
   }
 
@@ -30,7 +30,7 @@ class DatabaseHelper {
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  capacity REAL NOT NULL
+  cookies INTEGER NOT NULL
 )
 ''');
   }
@@ -43,6 +43,11 @@ CREATE TABLE users (
   Future<List<Map<String, dynamic>>> fetchUsers() async {
     final db = await instance.database;
     return await db.query('users');
+  }
+
+  Future<void> updateUser(Map<String, dynamic> user) async {
+    final db = await instance.database;
+    await db.update('users', user, where: 'id = ?', whereArgs: [user['id']]);
   }
 
   Future<void> close() async {

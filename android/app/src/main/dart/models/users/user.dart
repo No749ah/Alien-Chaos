@@ -1,7 +1,7 @@
 class User {
   final int? id;
   final String name;
-  final double cookies;
+  final int cookies;
 
   User({this.id, required this.name, required this.cookies});
 
@@ -18,6 +18,14 @@ class User {
       id: map['id'],
       name: map['name'],
       cookies: map['cookies'],
+    );
+  }
+
+  User copyWith({int? id, String? name, int? cookies}) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      cookies: cookies ?? this.cookies,
     );
   }
 }
