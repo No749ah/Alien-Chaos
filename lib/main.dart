@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'db/database_helper.dart';
 import 'models/users/user.dart';
+import 'cookies.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,96 +17,61 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(),
+      home: const UserInputPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+class UserInputPage extends StatefulWidget {
+  const UserInputPage({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _UserInputPageState createState() => _UserInputPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _UserInputPageState extends State<UserInputPage> {
+  final TextEditingController _usernameController = TextEditingController();
   late DatabaseHelper dbHelper;
-  User? _user;
-  int _cookies = 0;
 
   @override
   void initState() {
     super.initState();
     dbHelper = DatabaseHelper.instance;
-    print('DatabaseHelper initialized');
-    _loadUser();
   }
 
-  Future<void> _loadUser() async {
-    try {
-      final users = await dbHelper.fetchUsers();
-      print('Users fetched: $users');
-      if (users.isNotEmpty) {
-        setState(() {
-          _user = User.fromMap(users.first);
-          _cookies = _user!.cookies;
-          print('User loaded: $_user');
-        });
-      } else {
-        User user = User(name: 'Player', cookies: 0);
-        await dbHelper.insertUser(user.toMap());
-        print('New user inserted');
-        _loadUser();
-      }
-    } catch (e) {
-      print('Error loading user: $e');
-    }
-  }
-
-  Future<void> _incrementCookies() async {
-    try {
-      setState(() {
-        _cookies++;
-        print('Cookies incremented: $_cookies');
-      });
-      _user = _user?.copyWith(cookies: _cookies);
-      if (_user != null) {
-        await dbHelper.updateUser(_user!.toMap());
-        print('User updated: $_user');
-      }
-    } catch (e) {
-      print('Error incrementing cookies: $e');
+  Future<void> _createUser() async {
+    final username = _usernameController.text.trim();
+    if (username.isNotEmpty) {
+      User user = User(name: username, cookies: 0);
+      await dbHelper.insertUser(user.toMap());
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CookiesPage(user: user)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print('Building widget tree');
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cookie Clicker Clone'),
+        title: const Text('Enter Username'),
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'Cookies: $_cookies',
-              style: const TextStyle(
-                fontSize: 24,
-                color: Colors.black,
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Username',
               ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _incrementCookies,
-              style: ElevatedButton.styleFrom(
-                // ignore: undefined_named_parameter
-                foregroundColor: Colors.white,
-                // ignore: undefined_named_parameter
-                backgroundColor: Colors.blue,
-              ),
-              child: const Text('Click me!'),
+              onPressed: _createUser,
+              child: const Text('Create User'),
             ),
           ],
         ),
