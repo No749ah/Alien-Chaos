@@ -100,7 +100,10 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: _incrementCookies,
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
+                // ignore: undefined_named_parameter
+                foregroundColor: Colors.white,
+                // ignore: undefined_named_parameter
+                backgroundColor: Colors.blue,
               ),
               child: const Text('Click me!'),
             ),
