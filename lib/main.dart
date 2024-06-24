@@ -7,17 +7,54 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late Future<Widget> _initialPage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialPage = _checkForExistingUser();
+  }
+
+  Future<Widget> _checkForExistingUser() async {
+    final dbHelper = DatabaseHelper.instance;
+    List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
+    if (users.isNotEmpty) {
+      User existingUser = User.fromMap(users.first);
+      return CookiesPage(user: existingUser);
+    } else {
+      return const UserInputPage();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Cookie Clicker Clone',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const UserInputPage(),
+    return FutureBuilder<Widget>(
+      future: _initialPage,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
+            return MaterialApp(
+              title: 'Cookie Clicker Clone',
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+              ),
+              home: snapshot.data!,
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        } else {
+          return const CircularProgressIndicator();
+        }
+      },
     );
   }
 }
@@ -42,11 +79,11 @@ class _UserInputPageState extends State<UserInputPage> {
   Future<void> _createUser() async {
     final username = _usernameController.text.trim();
     if (username.isNotEmpty) {
-      User user = User(name: username, cookies: 0);
-      await dbHelper.insertUser(user.toMap());
+      User newUser = User(name: username, cookies: 0);
+      await dbHelper.insertUser(newUser.toMap());
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CookiesPage(user: user)),
+        MaterialPageRoute(builder: (context) => CookiesPage(user: newUser)),
       );
     }
   }

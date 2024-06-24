@@ -12,7 +12,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('app.db');
+    _database = await _initDB('cookie_chaos.db');
     return _database!;
   }
 
