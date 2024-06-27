@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../helper/game_state.dart';
-import '../utils/number_formatter.dart';
 import '../models/powerup.dart';
 import '../models/user.dart';
 import 'store_page.dart';
+import 'spin_wheel_page.dart';
 import 'user_input_page.dart';
 
 class AliensPage extends StatefulWidget {
@@ -42,6 +41,19 @@ class _AliensPageState extends State<AliensPage> {
       await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PowerUpShop(gameState: _gameState)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+
+  Future<void> _navigateToSpinWheel() async {
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SpinWheelPage(gameState: _gameState)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,6 +105,10 @@ class _AliensPageState extends State<AliensPage> {
                 IconButton(
                   icon: Icon(Icons.settings),
                   onPressed: _navigateToUserInputPage,
+                ),
+                IconButton(
+                  icon: Icon(Icons.casino),
+                  onPressed: _navigateToSpinWheel,
                 ),
               ],
             ),
