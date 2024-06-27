@@ -1,8 +1,5 @@
-import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-
-import 'data/powerup_data.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -14,7 +11,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosData.db');
+    _database = await _initDB('alienChaosDb.db');
     return _database!;
   }
 
@@ -47,22 +44,40 @@ class DatabaseHelper {
 
     await db.execute(userTable);
     await db.execute(powerUpTable);
-    await insertDummyData(db); // Insert dummy data after creating tables
+    await _insertDummyData(db); // Insert dummy data after creating tables
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 3) {
-      // Check if the column already exists before attempting to add it
-      final columns = await db.rawQuery('PRAGMA table_info(powerups)');
-      final columnExists = columns.any((column) => column['name'] == 'purchase_count');
+      const addPurchaseCountColumn = '''
+      ALTER TABLE powerups ADD COLUMN purchase_count INTEGER NOT NULL DEFAULT 0
+      ''';
+      await db.execute(addPurchaseCountColumn);
+      await _insertDummyData(db);
+    }
+  }
 
-      if (!columnExists) {
-        const addPurchaseCountColumn = '''
-        ALTER TABLE powerups ADD COLUMN purchase_count INTEGER NOT NULL DEFAULT 0
-        ''';
-        await db.execute(addPurchaseCountColumn);
-        await insertDummyData(db);
-      }
+  Future<void> _insertDummyData(Database db) async {
+    final existingPowerUps = await db.query('powerups');
+    if (existingPowerUps.isEmpty) {
+      final powerUp1 = {
+        'name': 'Alien Crowder',
+        'type': 'click',
+        'value': 1,
+        'cost': 100,
+        'purchase_count': 0,
+      };
+
+      final powerUp2 = {
+        'name': 'Alien Magnet',
+        'type': 'second',
+        'value': 1,
+        'cost': 200,
+        'purchase_count': 0,
+      };
+
+      await db.insert('powerups', powerUp1);
+      await db.insert('powerups', powerUp2);
     }
   }
 
@@ -79,17 +94,7 @@ class DatabaseHelper {
   Future<int> updateUser(Map<String, dynamic> row) async {
     final db = await instance.database;
     int id = row['id'];
-    print('Updating user with data: $row'); // Debug print
-    if (row['aliens'] == null) {
-      row['aliens'] = 0; // Ensure aliens is not null
-    }
-    print('Updating user id: $id with aliens: ${row['aliens']}'); // Debug print
     return await db.update('users', row, where: 'id = ?', whereArgs: [id]);
-  }
-
-  Future<int> insertPowerUp(Map<String, dynamic> row) async {
-    final db = await instance.database;
-    return await db.insert('powerups', row);
   }
 
   Future<List<Map<String, dynamic>>> fetchPowerUps() async {
