@@ -1,4 +1,4 @@
-name: cookie_chaos
+name: alien_chaos
 description: A new Flutter project.
 
 publish_to: 'none' # Remove this line if you want to publish to pub.dev
@@ -25,3 +25,5 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/alien.png

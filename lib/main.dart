@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'db/database_helper.dart';
 import 'models/users/user.dart';
-import 'cookies.dart';
+import 'aliens.dart';
+import 'store.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure initialized for async operations
+  await DatabaseHelper.instance.database; // Initialize the database
   runApp(const MyApp());
 }
 
@@ -28,7 +31,7 @@ class _MyAppState extends State<MyApp> {
     List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
     if (users.isNotEmpty) {
       User existingUser = User.fromMap(users.first);
-      return CookiesPage(user: existingUser);
+      return AliensPage(user: existingUser);
     } else {
       return const UserInputPage();
     }
@@ -42,7 +45,7 @@ class _MyAppState extends State<MyApp> {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData) {
             return MaterialApp(
-              title: 'Cookie Clicker Clone',
+              title: 'Alien Chaos',
               theme: ThemeData(
                 primarySwatch: Colors.blue,
               ),
@@ -79,11 +82,11 @@ class _UserInputPageState extends State<UserInputPage> {
   Future<void> _createUser() async {
     final username = _usernameController.text.trim();
     if (username.isNotEmpty) {
-      User newUser = User(name: username, cookies: 0);
+      User newUser = User(name: username, aliens: 0);
       await dbHelper.insertUser(newUser.toMap());
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CookiesPage(user: newUser)),
+        MaterialPageRoute(builder: (context) => AliensPage(user: newUser)),
       );
     }
   }

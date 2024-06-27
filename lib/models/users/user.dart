@@ -1,20 +1,20 @@
 class User {
   final int? id;
   final String name;
-  final int cookies;
+  late final int aliens;
 
-  User({this.id, required this.name, required this.cookies});
+  User({this.id, required this.name, required this.aliens});
 
   factory User.fromMap(Map<String, dynamic> json) => User(
     id: json['id'],
     name: json['name'],
-    cookies: json['cookies'],
+    aliens: json['aliens'],
   );
 
   Map<String, dynamic> toMap() {
     final map = {
       'name': name,
-      'cookies': cookies,
+      'aliens': aliens,
     };
     if (id != null) {
       map['id'] = id as Object;
@@ -22,11 +22,11 @@ class User {
     return map;
   }
 
-  User copyWith({int? id, String? name, int? cookies}) {
+  User copyWith({int? id, String? name, int? aliens}) {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,
-      cookies: cookies ?? this.cookies,
+      aliens: aliens ?? this.aliens,
     );
   }
 }
