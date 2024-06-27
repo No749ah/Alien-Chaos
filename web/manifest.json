@@ -1,11 +1,11 @@
 {
-    "name": "cookie_chaos",
-    "short_name": "cookie_chaos",
+    "name": "alien_chaos",
+    "short_name": "alien_chaos",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Alien Chaos.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

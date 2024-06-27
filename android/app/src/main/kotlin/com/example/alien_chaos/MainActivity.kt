@@ -1,4 +1,4 @@
-package com.example.cookie_chaos
+package com.example.alien_chaos
 
 import io.flutter.embedding.android.FlutterActivity
 
