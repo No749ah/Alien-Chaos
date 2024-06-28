@@ -15,7 +15,7 @@ class PowerUp {
     required this.type,
     required this.baseCost,
     required this.multiplier,
-    required this.purchasable,
+    this.purchasable = 1,
     this.purchaseCount = 0,
   });
 

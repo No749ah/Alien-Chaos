@@ -13,7 +13,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alianChaosDB.db');
+    _database = await _initDB('alienChaosDataDbDBTest3.db');
     return _database!;
   }
 
@@ -30,6 +30,7 @@ class DatabaseHelper {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       aliens INTEGER NOT NULL,
+      spinDate TEXT NOT NULL,
       prestige DOUBLE NOT NULL
     )
     ''';
@@ -59,25 +60,40 @@ class DatabaseHelper {
     final existingPowerUps = await db.query('powerups');
     if (existingPowerUps.isEmpty) {
       final powerUp1 = {
+        'id': 1,
         'name': 'starter_apk',
         'display_name': 'Alien Crowder',
         'type': 'click',
         'multiplier': 1.3,
         'cost': 66.666666666666666666666666666667,
         'purchase_count': 1,
+        'purchasable': 1,
       };
 
       final powerUp2 = {
+        'id': 2,
         'name': 'starter_aps',
         'display_name': 'Alien Magnet',
         'type': 'second',
         'multiplier': 1.2,
         'cost': 150,
         'purchase_count': 0,
+        'purchasable': 1,
+      };
+
+      final nonPurchasablePowerUp = {
+        'id': 900,
+        'name': 'daily_multiplier',
+        'display_name': 'Daily Multiplier',
+        'type': 'multiplier',
+        'cost': 0,
+        'purchase_count': 0,
+        'purchasable': 0,
       };
 
       await db.insert('powerups', powerUp1);
       await db.insert('powerups', powerUp2);
+      await db.insert('powerups', nonPurchasablePowerUp);
     }
   }
 
@@ -99,7 +115,6 @@ class DatabaseHelper {
     }
     return await db.update('users', row, where: 'id = ?', whereArgs: [id]);
   }
-
 
   Future<List<Map<String, dynamic>>> fetchPowerUps() async {
     final db = await instance.database;

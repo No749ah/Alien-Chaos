@@ -17,7 +17,7 @@ class GameState extends ChangeNotifier {
 
   Future<void> initialize() async {
     await _fetchUser();
-    await _fetchPowerUps();
+    await fetchPowerUps();
     _startAlienGrowth();
   }
 
@@ -29,9 +29,16 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  Future<void> _fetchPowerUps() async {
+  Future<List<PowerUp>> fetchPowerUps() async {
     List<Map<String, dynamic>> powerUpData = await _dbHelper.fetchPowerUps();
     _powerUps = powerUpData.map((data) => PowerUp.fromMap(data)).toList();
+    notifyListeners();
+    return _powerUps;
+  }
+
+  Future<void> updatePowerUpPurchaseCount(int id, int newCount) async {
+    await _dbHelper.updatePowerUpPurchaseCount(id, newCount);
+    await fetchPowerUps();
     notifyListeners();
   }
 
@@ -70,7 +77,7 @@ class GameState extends ChangeNotifier {
   double calculateAliensPerSecond() {
     double multiplier = 1.0;
     for (var powerUp in _powerUps) {
-      if (powerUp.type == 'second') {
+      if (powerUp.type == 'second' || powerUp.type == 'multiplier') {
         multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
       }
     }
@@ -81,7 +88,7 @@ class GameState extends ChangeNotifier {
   double calculateAliensPerClick() {
     double multiplier = 0.0;
     for (var powerUp in _powerUps) {
-      if (powerUp.type == 'click') {
+      if (powerUp.type == 'click' || powerUp.type == 'multiplier') {
         if (powerUp.name == 'starter_apk')
           multiplier = (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
         else {
@@ -99,7 +106,7 @@ class GameState extends ChangeNotifier {
       else {
         return pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
       }
-    } else if (powerUp.type == 'second') {
+    } else if (powerUp.type == 'second' || powerUp.type == 'multiplier') {
       return pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
     }
     return 1.0;
@@ -130,6 +137,11 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  Future<void> updateUser(Map<String, dynamic> userMap) async {
+    await _dbHelper.updateUser(userMap);
+    notifyListeners();
+  }
+
   Future<void> purchasePowerUp(PowerUp powerUp) async {
     int currentCost = calculatePowerUpCost(powerUp);
     if (_user != null && _user!.aliens >= currentCost) {
@@ -142,6 +154,12 @@ class GameState extends ChangeNotifier {
     } else {
       throw Exception('Not enough aliens to purchase ${powerUp.display_name}');
     }
+  }
+
+  Future<void> setSpinDate() async{
+    _user!.spinDate = DateTime.now();
+    await _dbHelper.updateUser(_user!.toMap());
+    notifyListeners();
   }
 
   int calculatePowerUpCost(PowerUp powerUp) {
