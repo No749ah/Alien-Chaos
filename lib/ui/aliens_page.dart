@@ -54,6 +54,13 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   @override
   void didPopNext() {
     super.didPopNext();
+
+    _gameState.initialize();
+    User? _nullableUser = _gameState.user;
+
+    if (_nullableUser != null) {
+      _user = _nullableUser;
+    }
     setupWheelTimer();
   }
 

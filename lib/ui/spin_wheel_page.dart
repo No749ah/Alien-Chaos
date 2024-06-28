@@ -76,6 +76,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
   }
 
   void _onSpinComplete(Reward reward) async {
+    _stopVibration();
     setState(() {
       _result = reward;
       _isSpinning = false;
@@ -103,7 +104,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(
-                'You have already spun today. Please come back tomorrow!')),
+                'You have already spin today. Please come back tomorrow!')),
       );
       return;
     }
@@ -115,6 +116,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
     final randomValue = Random().nextInt(_rewards.length);
     controller.add(randomValue);
     widget.gameState.setSpinDate();
+    _startVibration();
   }
 
   void _startVibration() async {
