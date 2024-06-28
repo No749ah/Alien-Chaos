@@ -6,6 +6,7 @@ import '../utils/number_formatter.dart';
 import '../models/powerup.dart';
 import '../models/user.dart';
 import 'store_page.dart';
+import 'user_input_page.dart';
 
 class AliensPage extends StatefulWidget {
   final User user;
@@ -49,6 +50,19 @@ class _AliensPageState extends State<AliensPage> {
     }
   }
 
+  Future<void> _navigateToUserInputPage() async {
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => UserInputPage(user: widget.user)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+
   String _formatPowerUpType(PowerUp powerUp, GameState gameState) {
     String multi = gameState.getFinalMultiplier((powerUp)).toStringAsFixed(2);
     if (powerUp.type == 'click') {
@@ -76,6 +90,10 @@ class _AliensPageState extends State<AliensPage> {
                   icon: Icon(Icons.shop),
                   onPressed: _navigateToPowerUpShop,
                 ),
+                IconButton(
+                  icon: Icon(Icons.settings),
+                  onPressed: _navigateToUserInputPage,
+                ),
               ],
             ),
             body: Center(
@@ -94,7 +112,7 @@ class _AliensPageState extends State<AliensPage> {
                     onTap: _incrementAliens,
                     child: CircleAvatar(
                       radius: 100,
-                      backgroundImage: AssetImage('assets/alien.png'), // Your round image asset
+                      backgroundImage: AssetImage('assets/alien.png'),
                     ),
                   ),
                   const SizedBox(height: 50),
