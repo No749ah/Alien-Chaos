@@ -1,8 +1,9 @@
-import 'package:alien_chaos/ui/aliens_page.dart';
-import 'package:alien_chaos/ui/user_input_page.dart';
 import 'package:flutter/material.dart';
 import 'db/database_helper.dart';
 import 'models/user.dart';
+import 'ui/aliens_page.dart';
+import 'ui/user_input_page.dart';
+import 'ui/loading_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,10 +25,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initialPage = _checkForExistingUser();
+    _initialPage = _initializeApp();
   }
 
-  Future<Widget> _checkForExistingUser() async {
+  Future<Widget> _initializeApp() async {
+    await Future.delayed(Duration(seconds: 3));
+
     final dbHelper = DatabaseHelper.instance;
     List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
     if (users.isNotEmpty) {
@@ -40,26 +43,25 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Widget>(
-      future: _initialPage,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData) {
-            return MaterialApp(
-              title: 'Alien Chaos',
-              theme: ThemeData(
-                primarySwatch: Colors.blue,
-              ),
-              home: snapshot.data!,
-              navigatorObservers: [routeObserver],
-            );
+    return MaterialApp(
+      title: 'Alien Chaos',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: FutureBuilder<Widget>(
+        future: _initialPage,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasData) {
+              return snapshot.data!;
+            } else {
+              return const LoadingScreen(loadingText: "Error loading data.");
+            }
           } else {
-            return const CircularProgressIndicator();
+            return const LoadingScreen();
           }
-        } else {
-          return const CircularProgressIndicator();
-        }
-      },
+        },
+      ),
     );
   }
 }
