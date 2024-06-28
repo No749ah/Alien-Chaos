@@ -36,37 +36,49 @@ class GameState extends ChangeNotifier {
 
   void _startAlienGrowth() {
     _timer?.cancel();
-    int aliensPerSecond = calculateAliensPerSecond();
+    double aliensPerSecond = calculateAliensPerSecond();
+    double alienFraction = 0.0;
 
     if (aliensPerSecond > 0) {
       _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
         if (_user != null) {
-          _user!.aliens += aliensPerSecond;
-          await _dbHelper.updateUser(_user!.toMap());
-          notifyListeners(); // Notify listeners after updating aliens count
+          alienFraction += aliensPerSecond;
+
+          alienFraction = double.parse(alienFraction.toStringAsFixed(5));
+
+          int wholeAliens = alienFraction.floor();
+          double fractionalAliens = alienFraction - wholeAliens;
+
+          if (fractionalAliens >= 1.0) {
+            wholeAliens += 1;
+            fractionalAliens -= 1.0;
+          }
+
+          alienFraction = fractionalAliens;
+
+          if (wholeAliens > 0) {
+            _user!.aliens += wholeAliens;
+            await _dbHelper.updateUser(_user!.toMap());
+            notifyListeners();
+          }
         }
       });
     }
   }
 
-  int calculateAliensPerSecond() {
-    int baseAliensPerSecond = 1;
-    for (var powerUp in _powerUps) {
-      if (powerUp.type == 'second') {
-        baseAliensPerSecond += powerUp.value;
-      }
-    }
+  double calculateAliensPerSecond() {
     double multiplier = 1.0;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'second') {
         multiplier *= pow(1.3, powerUp.purchaseCount);
       }
     }
-    return ((baseAliensPerSecond * multiplier) -1).toInt();
+
+    return ((multiplier) -1);
   }
 
   int calculateAliensPerClick() {
-    int baseAliensPerClick = 0;
+    double baseAliensPerClick = 0.83333333333333333333333333333333;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click') {
         baseAliensPerClick += powerUp.value;
@@ -83,7 +95,7 @@ class GameState extends ChangeNotifier {
 
   num getFinalMultiplier(PowerUp powerUp) {
     if (powerUp.type == 'click') {
-      return pow(1.2, powerUp.purchaseCount);
+      return pow(1.2, powerUp.purchaseCount)*0.83333333333333333333333333333;
     } else if (powerUp.type == 'second') {
       return pow(1.3, powerUp.purchaseCount);
     }

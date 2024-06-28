@@ -1,9 +1,9 @@
 class PowerUp {
   final int id;
   final String name;
-  final String type; // 'click' or 'second'
+  final String type;
   final int value;
-  final int baseCost;
+  final double baseCost;
   int purchaseCount;
 
   PowerUp({
