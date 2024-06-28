@@ -1,7 +1,14 @@
 import 'dart:math' as math;
 
 String reducedFormatNumber(num number) {
-  if (number < 1000) return number.toString();
+  if (number < 1000) {
+    String fixedNumber = number.toStringAsFixed(2);
+    if (fixedNumber.endsWith('00')) {
+      return number.toStringAsFixed(0);
+    } else {
+      return fixedNumber;
+    }
+  }
 
   const suffixes = [
     '',
@@ -29,14 +36,21 @@ String reducedFormatNumber(num number) {
   ];
 
   int i = (number == 0) ? 0 : (math.log(number) / math.log(1000)).floor();
-  num reduced = (number / math.pow(1000, i)).ceilToDouble() / 10;
+  num reduced = number / math.pow(1000, i);
   String suffix = suffixes[i];
 
-  return '${reduced.toStringAsFixed(1)}$suffix';
+  return '${reduced.toStringAsFixed(2)}$suffix';
 }
 
 String slightReducedFormatNumber(num number) {
-  if (number < 1000) return number.toString();
+  if (number < 1000) {
+    String fixedNumber = number.toStringAsFixed(3);
+    if (fixedNumber.endsWith('000')) {
+      return number.toStringAsFixed(0);
+    } else {
+      return fixedNumber;
+    }
+  }
 
   const suffixes = [
     '',

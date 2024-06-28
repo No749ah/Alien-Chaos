@@ -30,7 +30,7 @@ class _UserInputPageState extends State<UserInputPage> {
     if (username.isNotEmpty) {
       if (widget.user == null) {
         // Create new user
-        User newUser = User(name: username, aliens: 0);
+        User newUser = User(name: username, aliens: 0, prestige: 1);
         await dbHelper.insertUser(newUser.toMap());
         Navigator.pushReplacement(
           context,
@@ -42,6 +42,7 @@ class _UserInputPageState extends State<UserInputPage> {
           id: widget.user!.id, // Ensure the user has an id
           name: username,
           aliens: widget.user!.aliens,
+          prestige: widget.user!.prestige,
         );
         await dbHelper.updateUser(updatedUser.toMap());
         Navigator.pushReplacement(

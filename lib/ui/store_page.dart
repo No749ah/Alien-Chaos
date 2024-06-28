@@ -1,8 +1,9 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../helper/game_state.dart';
 import '../models/powerup.dart';
-import '../utils/number_formatter.dart';  // Import the number formatter
+import '../utils/number_formatter.dart';
 
 class PowerUpShop extends StatefulWidget {
   final GameState gameState;
@@ -23,21 +24,36 @@ class _PowerUpShopState extends State<PowerUpShop> {
   }
 
   Future<void> _navigateToAliens() async {
-    Navigator.pop(context); // Return to the previous screen (AliensPage)
+    Navigator.pop(context);
   }
 
-  int _calculateIncrease(PowerUp powerUp) {
-    int currentValue = powerUp.type == 'click'
-        ? _gameState.calculateAliensPerClick().toInt()
-        : _gameState.calculateAliensPerSecond().toInt();
+  double _calculateIncrease(PowerUp powerUp) {
+    double currentValue = (powerUp.type == 'click'
+        ? _gameState.calculateAliensPerClick()
+        : _gameState.calculateAliensPerSecond());
 
     powerUp.purchaseCount += 1;
-    int newValue = powerUp.type == 'click'
-        ? _gameState.calculateAliensPerClick().toInt()
-        : _gameState.calculateAliensPerSecond().toInt();
-    powerUp.purchaseCount -= 1; // revert the change
+    double newValue = powerUp.type == 'click'
+        ? _gameState.calculateAliensPerClick()
+        : _gameState.calculateAliensPerSecond();
+    powerUp.purchaseCount -= 1;
 
     return newValue - currentValue;
+  }
+
+  double _calculatePrestigeMultiplier() {
+    int totalAliens = _gameState.user!.aliens;
+    int totalPowerUps = _gameState.powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
+    double prestigeMultiplier = 0.1;
+
+    return _gameState.calculatePrestigePoints(totalAliens, totalPowerUps, prestigeMultiplier, (_gameState.user!.prestige));
+  }
+
+  Future<void> _performPrestige() async {
+    await _gameState.prestige();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Prestige activated!')),
+    );
   }
 
   @override
@@ -45,12 +61,15 @@ class _PowerUpShopState extends State<PowerUpShop> {
     return WillPopScope(
       onWillPop: () async {
         _navigateToAliens();
-        return false; // Prevent default back button behavior
+        return false;
       },
       child: ChangeNotifierProvider.value(
         value: _gameState,
         child: Consumer<GameState>(
           builder: (context, gameState, child) {
+            double prestigeMultiplier = _calculatePrestigeMultiplier();
+            List<PowerUp> purchasablePowerUps = gameState.powerUps.where((powerUp) => powerUp.purchasable == 1).toList();
+
             return Scaffold(
               appBar: AppBar(
                 title: Text('Power-Up Shop'),
@@ -64,7 +83,7 @@ class _PowerUpShopState extends State<PowerUpShop> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      'Aliens: ${slightReducedFormatNumber(gameState.user!.aliens)}',  // Format the alien count
+                      'Aliens: ${slightReducedFormatNumber(gameState.user!.aliens)}',
                       style: const TextStyle(
                         fontSize: 24,
                         color: Colors.black,
@@ -73,33 +92,33 @@ class _PowerUpShopState extends State<PowerUpShop> {
                     const SizedBox(height: 20),
                     Expanded(
                       child: ListView.builder(
-                        itemCount: gameState.powerUps.length,
+                        itemCount: purchasablePowerUps.length,
                         itemBuilder: (context, index) {
-                          final powerUp = gameState.powerUps[index];
+                          final powerUp = purchasablePowerUps[index];
                           int currentCost = gameState.calculatePowerUpCost(powerUp);
-                          int increase = _calculateIncrease(powerUp);
+                          double increase = _calculateIncrease(powerUp);
                           bool canAfford = gameState.user!.aliens >= currentCost;
 
                           return Container(
-                            margin: EdgeInsets.symmetric(vertical: 5), // Add vertical margin
+                            margin: EdgeInsets.symmetric(vertical: 5),
                             decoration: BoxDecoration(
                               color: canAfford ? Colors.white : Colors.grey[300],
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: Colors.black,
-                                width: 1, // Make border thinner
+                                width: 1,
                               ),
                             ),
                             child: ListTile(
                               title: Text(
-                                '${powerUp.display_name} (${reducedFormatNumber(currentCost)} aliens)',  // Format the cost
+                                '${powerUp.display_name} (${reducedFormatNumber(currentCost)} Aliens)',
                                 style: TextStyle(
                                   color: canAfford ? Colors.black : Colors.grey,
                                 ),
                               ),
                               subtitle: Text(
-                                'Adds ${powerUp.value} ${powerUp.type == "click" ? "per click" : "per second"}\n'
-                                    'Increase: ${reducedFormatNumber(increase)} ${powerUp.type == "click" ? "per click" : "per second"}',  // Format the increase
+                                'Multiplies ${powerUp.multiplier}x ${powerUp.type == "click" ? "clicks" : "per second"}\n'
+                                    'Increase: ${reducedFormatNumber(increase)} ${powerUp.type == "click" ? "per click" : "per second"}',
                                 style: TextStyle(
                                   color: canAfford ? Colors.black : Colors.grey,
                                 ),
@@ -118,6 +137,22 @@ class _PowerUpShopState extends State<PowerUpShop> {
                             ),
                           );
                         },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            '${prestigeMultiplier.toStringAsFixed(2)}x Multiplier with Prestige',
+                            style: TextStyle(fontSize: 24, color: Colors.black),
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: _performPrestige,
+                            child: Text('Prestige'),
+                          ),
+                        ],
                       ),
                     ),
                   ],
