@@ -9,8 +9,9 @@ class GameState extends ChangeNotifier {
   User? _user;
   List<PowerUp> _powerUps = [];
   Timer? _timer;
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   double _alienFraction = 0.0;
+  double _baseklickValue = 0.76923076923076923076923076923077;
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   User? get user => _user;
   List<PowerUp> get powerUps => _powerUps;
@@ -71,7 +72,7 @@ class GameState extends ChangeNotifier {
     double multiplier = 1.0;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'second') {
-        multiplier *= pow(1.3, powerUp.purchaseCount);
+        multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount);
       }
     }
 
@@ -79,10 +80,10 @@ class GameState extends ChangeNotifier {
   }
 
   double calculateAliensPerClick() {
-    double multiplier = 0.83333333333333333333333333333333;;
+    double multiplier = 0.0;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click') {
-        multiplier *= pow(1.2, powerUp.purchaseCount);
+        multiplier = _baseklickValue * pow(powerUp.multiplier, powerUp.purchaseCount);
       }
     }
     return multiplier;
@@ -90,9 +91,9 @@ class GameState extends ChangeNotifier {
 
   num getFinalMultiplier(PowerUp powerUp) {
     if (powerUp.type == 'click') {
-      return pow(1.2, powerUp.purchaseCount)*0.83333333333333333333333333333;
+      return pow(powerUp.multiplier, powerUp.purchaseCount)* _baseklickValue;
     } else if (powerUp.type == 'second') {
-      return pow(1.3, powerUp.purchaseCount);
+      return pow(powerUp.multiplier, powerUp.purchaseCount);
     }
     return 1.0;
   }

@@ -11,7 +11,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosDb.db');
+    _database = await _initDB('alienChaosData.db');
     return _database!;
   }
 
@@ -38,23 +38,17 @@ class DatabaseHelper {
       type TEXT NOT NULL,
       value INTEGER NOT NULL,
       cost DOUBLE NOT NULL,
+      multiplier DOUBLE NOT NULL DEFAULT 1,
       purchase_count INTEGER NOT NULL DEFAULT 0
     )
     ''';
 
     await db.execute(userTable);
     await db.execute(powerUpTable);
-    await _insertDummyData(db); // Insert dummy data after creating tables
+    await _insertDummyData(db);
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
-      const addPurchaseCountColumn = '''
-      ALTER TABLE powerups ADD COLUMN purchase_count INTEGER NOT NULL DEFAULT 0
-      ''';
-      await db.execute(addPurchaseCountColumn);
-      await _insertDummyData(db);
-    }
   }
 
   Future<void> _insertDummyData(Database db) async {
@@ -64,6 +58,7 @@ class DatabaseHelper {
         'name': 'Alien Crowder',
         'type': 'click',
         'value': 1,
+        'multiplier': 1.3,
         'cost': 66.666666666666666666666666666667,
         'purchase_count': 1,
       };
@@ -72,6 +67,7 @@ class DatabaseHelper {
         'name': 'Alien Magnet',
         'type': 'second',
         'value': 1,
+        'multiplier': 1.2,
         'cost': 150,
         'purchase_count': 0,
       };
