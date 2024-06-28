@@ -10,6 +10,7 @@ class GameState extends ChangeNotifier {
   List<PowerUp> _powerUps = [];
   Timer? _timer;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  double _alienFraction = 0.0;
 
   User? get user => _user;
   List<PowerUp> get powerUps => _powerUps;
@@ -24,14 +25,14 @@ class GameState extends ChangeNotifier {
     List<Map<String, dynamic>> users = await _dbHelper.fetchUsers();
     if (users.isNotEmpty) {
       _user = User.fromMap(users.first);
-      notifyListeners(); // Notify listeners after fetching the user
+      notifyListeners();
     }
   }
 
   Future<void> _fetchPowerUps() async {
     List<Map<String, dynamic>> powerUpData = await _dbHelper.fetchPowerUps();
     _powerUps = powerUpData.map((data) => PowerUp.fromMap(data)).toList();
-    notifyListeners(); // Notify listeners after fetching power-ups
+    notifyListeners();
   }
 
   void _startAlienGrowth() {
@@ -77,20 +78,14 @@ class GameState extends ChangeNotifier {
     return ((multiplier) -1);
   }
 
-  int calculateAliensPerClick() {
-    double baseAliensPerClick = 0.83333333333333333333333333333333;
-    for (var powerUp in _powerUps) {
-      if (powerUp.type == 'click') {
-        baseAliensPerClick += powerUp.value;
-      }
-    }
-    double multiplier = 1.0;
+  double calculateAliensPerClick() {
+    double multiplier = 0.83333333333333333333333333333333;;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click') {
         multiplier *= pow(1.2, powerUp.purchaseCount);
       }
     }
-    return (baseAliensPerClick * multiplier).toInt();
+    return multiplier;
   }
 
   num getFinalMultiplier(PowerUp powerUp) {
@@ -104,10 +99,26 @@ class GameState extends ChangeNotifier {
 
   Future<void> incrementAliens() async {
     if (_user != null) {
-      int aliensPerClick = calculateAliensPerClick();
-      _user!.aliens += aliensPerClick;
-      await _dbHelper.updateUser(_user!.toMap());
-      notifyListeners(); // Notify listeners after incrementing aliens
+      double aliensPerClick = calculateAliensPerClick();
+      _alienFraction += aliensPerClick;
+
+      _alienFraction = double.parse(_alienFraction.toStringAsFixed(5));
+
+      int wholeAliens = _alienFraction.floor();
+      double fractionalAliens = _alienFraction - wholeAliens;
+
+      if (fractionalAliens >= 1.0) {
+        wholeAliens += 1;
+        fractionalAliens -= 1.0;
+      }
+
+      _alienFraction = fractionalAliens;
+
+      if (wholeAliens > 0) {
+        _user!.aliens += wholeAliens;
+        await _dbHelper.updateUser(_user!.toMap());
+        notifyListeners();
+      }
     }
   }
 
@@ -118,10 +129,8 @@ class GameState extends ChangeNotifier {
       powerUp.purchaseCount += 1;
       await _dbHelper.updatePowerUpPurchaseCount(powerUp.id, powerUp.purchaseCount);
       await _dbHelper.updateUser(_user!.toMap());
-      notifyListeners(); // Notify listeners after purchasing power-up
+      notifyListeners();
     } else {
-      // Display a message if there are not enough aliens
-      print('Not enough aliens to purchase ${powerUp.name}');
       throw Exception('Not enough aliens to purchase ${powerUp.name}');
     }
   }
