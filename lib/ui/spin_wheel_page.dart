@@ -23,6 +23,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
   bool _isSpinning = false;
   String _result = '';
   final StreamController<int> controller = StreamController<int>();
+  late List<Reward> _rewards;
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
   }
 
   Future<Reward> setupPowerUpReward(PowerUp powerUp) async {
-    return Reward(name: powerUp.name, powerupId: powerUp.id);
+    return Reward(name: powerUp.display_name, powerupId: powerUp.id);
   }
 
   static PowerUp randomPowerUp(List<PowerUp> powerUps) {
@@ -63,11 +64,10 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
       _rewards.add(await setupReward(2));
 
       var powerUps = await widget.gameState.fetchPowerUps();
-      _rewards.add(
-          await setupPowerUpReward(powerUps.firstWhere((pu) => pu.id == 900)));
+      _rewards.add(await setupPowerUpReward(powerUps.firstWhere((pu) => pu.id == 900)));
 
       var purchasedPowerUp =
-          powerUps.where((pu) => pu.purchaseCount >= 0).toList();
+      powerUps.where((pu) => pu.purchaseCount >= 0).toList();
       _rewards.add(await setupPowerUpReward(randomPowerUp(purchasedPowerUp)));
       _rewards.add(await setupPowerUpReward(randomPowerUp(purchasedPowerUp)));
       _rewards.add(await setupPowerUpReward(randomPowerUp(purchasedPowerUp)));
@@ -78,24 +78,25 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
   void _onSpinComplete(Reward reward) async {
     _stopVibration();
     setState(() {
-      _result = reward;
+      _result = reward.name;
       _isSpinning = false;
     });
 
     // Apply the reward
-    if (reward == 'Multiplier') {
-      await _applyMultiplier();
+    if (reward.powerupId != 0) {
+      await _applyPowerup(reward.powerupId);
     } else {
-      _user.aliens += 100; // Add 100 aliens as a reward
+      _user.aliens += reward.aliens;
       await widget.gameState.updateUser(_user.toMap());
     }
   }
 
-  Future<void> _applyMultiplier() async {
+  Future<void> _applyPowerup(int id) async {
     var powerUps = await widget.gameState.fetchPowerUps();
-    var multiplierPowerUp = powerUps.firstWhere((pu) => pu.name == 'Daily Multiplier');
-    multiplierPowerUp.purchaseCount += 1;
-    await widget.gameState.updatePowerUpPurchaseCount(multiplierPowerUp.id, multiplierPowerUp.purchaseCount);
+    var powerUp = powerUps.firstWhere((pu) => pu.id == id);
+    powerUp.purchaseCount += 1;
+    await widget.gameState
+        .updatePowerUpPurchaseCount(powerUp.id, powerUp.purchaseCount);
     await widget.gameState.updateUser(_user.toMap());
   }
 
@@ -132,26 +133,21 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
     Vibration.cancel();
   }
 
-  void _extendSpin() {
-    if (_isSpinning) {
-      setState(() {
-        // Extend spin by increasing spin velocity or adding more spins
-        _result = 'Extended Spin!';
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Spin Wheel'),
+        title: Text('Spin Test'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SpinWheelWidget(onSpinComplete: _onSpinComplete, controller: controller),
+            SpinWheelWidget(
+              onSpinComplete: (reward) => _onSpinComplete(reward),
+              controller: controller,
+              fetchRewards: fetchRewards,
+            ),
             SizedBox(height: 20),
             Text('Result: $_result'),
             SizedBox(height: 20),

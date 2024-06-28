@@ -1,46 +1,78 @@
-// spin_wheel_widget.dart
-
-import 'dart:convert';
-import 'dart:ffi';
-import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
 import 'dart:async';
 
-class SpinWheelWidget extends StatefulWidget {
-  final Function(String) onSpinComplete;
-  final StreamController<int> controller;
+import 'package:flutter/material.dart';
+import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
+import 'package:rxdart/rxdart.dart';
 
-  SpinWheelWidget({required this.onSpinComplete, required this.controller});
+import '../models/reward.dart';
+
+class SpinWheelWidget extends StatefulWidget {
+  final StreamController<int> controller;
+  final Function(Reward) onSpinComplete;
+  final Future<List<Reward>> Function() fetchRewards;
+
+  const SpinWheelWidget({
+    Key? key,
+    required this.controller,
+    required this.onSpinComplete,
+    required this.fetchRewards,
+  }) : super(key: key);
 
   @override
-  _SpinWheelWidgetState createState() => _SpinWheelWidgetState();
+  State<SpinWheelWidget> createState() => _SpinWheelState();
 }
 
-class _SpinWheelWidgetState extends State<SpinWheelWidget> {
-  final List<String> rewards = ['Multiplier', 'Aliens', 'Aliens', 'Multiplier'];
+class _SpinWheelState extends State<SpinWheelWidget> {
+  final selected = BehaviorSubject<int>();
+  List<Reward> items = [];
+  int rewards = 0;
+
+  @override
+  void dispose() {
+    selected.close();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.stream.listen((event) {
+      selected.add(event);
+    });
+    _loadRewards();
+  }
+
+  Future<void> _loadRewards() async {
+    items = await widget.fetchRewards();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return items.isEmpty
+        ? CircularProgressIndicator()
+        : Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        FortuneWheel(
-          selected: widget.controller.stream,
-          items: [
-            for (var reward in rewards) FortuneItem(child: Text(reward)),
-          ],
-          onAnimationEnd: () async {
-            final selected = await widget.controller.stream.last;
-            widget.onSpinComplete(rewards[selected]);
-          },
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final randomValue = Random().nextInt(rewards.length);
-            widget.controller.add(randomValue);
-          },
-          child: Text('Spin'),
+        SizedBox(
+          height: 300,
+          child: FortuneWheel(
+            selected: selected.stream,
+            animateFirst: false,
+            items: [
+              for (int i = 0; i < items.length; i++)
+                ...<FortuneItem>{
+                  FortuneItem(child: Text(items[i].name)),
+                },
+            ],
+            onAnimationEnd: () {
+              setState(() {
+                rewards = selected.value;
+              });
+              widget.onSpinComplete(items[rewards]);
+            },
+          ),
         ),
       ],
     );

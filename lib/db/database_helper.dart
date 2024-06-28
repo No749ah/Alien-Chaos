@@ -13,7 +13,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosDataDbDBTest2.db');
+    _database = await _initDB('alienChaosDataDbDBTest3.db');
     return _database!;
   }
 
@@ -30,7 +30,7 @@ class DatabaseHelper {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       aliens INTEGER NOT NULL,
-      spinDate TEXT NOT NULL
+      spinDate TEXT NOT NULL,
       prestige DOUBLE NOT NULL
     )
     ''';
@@ -83,9 +83,9 @@ class DatabaseHelper {
 
       final nonPurchasablePowerUp = {
         'id': 900,
-        'name': 'Daily Multiplier',
+        'name': 'daily_multiplier',
+        'display_name': 'Daily Multiplier',
         'type': 'multiplier',
-        'value': 1,
         'cost': 0,
         'purchase_count': 0,
         'purchasable': 0,

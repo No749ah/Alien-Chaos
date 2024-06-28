@@ -39,7 +39,7 @@ class User {
       id: id ?? this.id,
       name: name ?? this.name,
       aliens: aliens ?? this.aliens,
-      prestige: prestige ?? this.prestige
+      prestige: prestige ?? this.prestige,
       spinDate: spinDate ?? this.spinDate
     );
   }
