@@ -10,7 +10,6 @@ class GameState extends ChangeNotifier {
   List<PowerUp> _powerUps = [];
   Timer? _timer;
   double _alienFraction = 0.0;
-  double _baseklickValue = 0.76923076923076923076923076923077;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   User? get user => _user;
@@ -39,6 +38,7 @@ class GameState extends ChangeNotifier {
   void _startAlienGrowth() {
     _timer?.cancel();
     double aliensPerSecond = calculateAliensPerSecond();
+    print(calculateAliensPerSecond());
     double alienFraction = 0.0;
 
     if (aliensPerSecond > 0) {
@@ -83,7 +83,11 @@ class GameState extends ChangeNotifier {
     double multiplier = 0.0;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click') {
-        multiplier = _baseklickValue * pow(powerUp.multiplier, powerUp.purchaseCount);
+        if (powerUp.name == 'starter_apk')
+          multiplier = pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier;
+        else {
+          multiplier = pow(powerUp.multiplier, powerUp.purchaseCount)*1;
+        }
       }
     }
     return multiplier;
@@ -91,7 +95,11 @@ class GameState extends ChangeNotifier {
 
   num getFinalMultiplier(PowerUp powerUp) {
     if (powerUp.type == 'click') {
-      return pow(powerUp.multiplier, powerUp.purchaseCount)* _baseklickValue;
+      if (powerUp.name == 'starter_apk')
+        return pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier;
+      else {
+        return pow(powerUp.multiplier, powerUp.purchaseCount)*1;
+      }
     } else if (powerUp.type == 'second') {
       return pow(powerUp.multiplier, powerUp.purchaseCount);
     }
@@ -131,8 +139,9 @@ class GameState extends ChangeNotifier {
       await _dbHelper.updatePowerUpPurchaseCount(powerUp.id, powerUp.purchaseCount);
       await _dbHelper.updateUser(_user!.toMap());
       notifyListeners();
+      initialize();
     } else {
-      throw Exception('Not enough aliens to purchase ${powerUp.name}');
+      throw Exception('Not enough aliens to purchase ${powerUp.display_name}');
     }
   }
 

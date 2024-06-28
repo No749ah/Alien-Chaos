@@ -128,7 +128,7 @@ class _AliensPageState extends State<AliensPage> {
                           return DataRow(
                             cells: <DataCell>[
                               DataCell(Text('${powerUp.purchaseCount}')),
-                              DataCell(Text(powerUp.name)),
+                              DataCell(Text(powerUp.display_name)),
                               DataCell(Text(_formatPowerUpType(powerUp, gameState))),
                             ],
                           );
