@@ -2,13 +2,15 @@ class User {
   final int? id;
   final String name;
   int aliens;
+  DateTime spinDate;
   double prestige;
 
   User({
     this.id,
     required this.name,
     required this.aliens,
-    required this.prestige
+    required this.prestige,
+    required this.spinDate,
   });
 
   factory User.fromMap(Map<String, dynamic> json) => User(
@@ -16,6 +18,7 @@ class User {
     name: json['name'],
     aliens: json['aliens'],
     prestige: json['prestige'],
+    spinDate: DateTime.parse(json['spinDate']),
   );
 
   Map<String, dynamic> toMap() {
@@ -23,6 +26,7 @@ class User {
       'name': name,
       'aliens': aliens,
       'prestige': prestige,
+      'spinDate': spinDate.toIso8601String()
     };
     if (id != null) {
       map['id'] = id as Object;
@@ -30,12 +34,13 @@ class User {
     return map;
   }
 
-  User copyWith({int? id, String? name, int? aliens, double? prestige}) {
+  User copyWith({int? id, String? name, int? aliens, double? prestige, DateTime? spinDate}) {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,
       aliens: aliens ?? this.aliens,
       prestige: prestige ?? this.prestige
+      spinDate: spinDate ?? this.spinDate
     );
   }
 }

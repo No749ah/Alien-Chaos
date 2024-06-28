@@ -13,7 +13,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alianChaosDB.db');
+    _database = await _initDB('alienChaosDataDbDBTest2.db');
     return _database!;
   }
 
@@ -30,6 +30,7 @@ class DatabaseHelper {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       aliens INTEGER NOT NULL,
+      spinDate TEXT NOT NULL
       prestige DOUBLE NOT NULL
     )
     ''';
@@ -59,6 +60,7 @@ class DatabaseHelper {
     final existingPowerUps = await db.query('powerups');
     if (existingPowerUps.isEmpty) {
       final powerUp1 = {
+        'id': 1,
         'name': 'starter_apk',
         'display_name': 'Alien Crowder',
         'type': 'click',
@@ -69,6 +71,7 @@ class DatabaseHelper {
       };
 
       final powerUp2 = {
+        'id': 2,
         'name': 'starter_aps',
         'display_name': 'Alien Magnet',
         'type': 'second',
@@ -79,6 +82,7 @@ class DatabaseHelper {
       };
 
       final nonPurchasablePowerUp = {
+        'id': 900,
         'name': 'Daily Multiplier',
         'type': 'multiplier',
         'value': 1,
@@ -90,29 +94,6 @@ class DatabaseHelper {
       await db.insert('powerups', powerUp1);
       await db.insert('powerups', powerUp2);
       await db.insert('powerups', nonPurchasablePowerUp);
-    }
-  }
-
-  Future<int> updateLastSpinTime(int userId, int lastSpinTime) async {
-    final db = await instance.database;
-    return await db.insert(
-      'spins',
-      {'user_id': userId, 'last_spin_time': lastSpinTime},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<Map<String, dynamic>?> getLastSpinTime(int userId) async {
-    final db = await instance.database;
-    final result = await db.query(
-      'spins',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-    );
-    if (result.isNotEmpty) {
-      return result.first;
-    } else {
-      return null;
     }
   }
 

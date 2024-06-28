@@ -1,35 +1,60 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../helper/game_state.dart';
 import '../models/powerup.dart';
 import '../models/user.dart';
+import '../utils/number_formatter.dart';
 import 'store_page.dart';
 import 'spin_wheel_page.dart';
 import 'user_input_page.dart';
 
 class AliensPage extends StatefulWidget {
   final User user;
+  final RouteObserver<PageRoute> routeObserver;
 
-  const AliensPage({Key? key, required this.user}) : super(key: key);
+  const AliensPage({Key? key, required this.user, required this.routeObserver})
+      : super(key: key);
 
   @override
   _AliensPageState createState() => _AliensPageState();
 }
 
-class _AliensPageState extends State<AliensPage> {
+class _AliensPageState extends State<AliensPage> with RouteAware {
   late GameState _gameState;
+  late Timer _timer;
+  late User _user;
+  bool _showSpinningWheel = false;
 
   @override
   void initState() {
     super.initState();
     _gameState = GameState();
     _gameState.initialize();
+    _user = widget.user;
+
+    setupWheelTimer();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    widget.routeObserver
+        .subscribe(this, ModalRoute.of(context)! as PageRoute<dynamic>);
   }
 
   @override
   void dispose() {
     _gameState.dispose();
+    _timer.cancel();
+    widget.routeObserver.unsubscribe(this);
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    setupWheelTimer();
   }
 
   Future<void> _incrementAliens() async {
@@ -40,7 +65,8 @@ class _AliensPageState extends State<AliensPage> {
     try {
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PowerUpShop(gameState: _gameState)),
+        MaterialPageRoute(
+            builder: (context) => PowerUpShop(gameState: _gameState)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,7 +79,8 @@ class _AliensPageState extends State<AliensPage> {
     try {
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => SpinWheelPage(gameState: _gameState)),
+        MaterialPageRoute(
+            builder: (context) => SpinWheelPage(gameState: _gameState)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +93,9 @@ class _AliensPageState extends State<AliensPage> {
     try {
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => UserInputPage(user: widget.user)),
+        MaterialPageRoute(
+            builder: (context) => UserInputPage(
+                user: widget.user, routeObserver: widget.routeObserver)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,6 +112,20 @@ class _AliensPageState extends State<AliensPage> {
       return '${(reducedFormatNumber(double.parse((multi- 1).toStringAsFixed(2))))} x Aliens / Second';
     }
     return '';
+  }
+
+  void setupWheelTimer() {
+    _showSpinningWheel = false;
+
+    if (_user.spinDate.day < DateTime.now().day) {
+      Duration difference = Duration(seconds: 45);
+
+      _timer = Timer(difference, () {
+        setState(() {
+          _showSpinningWheel = true;
+        });
+      });
+    }
   }
 
   @override
@@ -128,7 +171,8 @@ class _AliensPageState extends State<AliensPage> {
                     onTap: _incrementAliens,
                     child: CircleAvatar(
                       radius: 100,
-                      backgroundImage: AssetImage('assets/alien.png'),
+                      backgroundImage: AssetImage(
+                          'assets/images/alien.png'), // Your round image asset
                     ),
                   ),
                   const SizedBox(height: 50),
@@ -145,7 +189,8 @@ class _AliensPageState extends State<AliensPage> {
                             cells: <DataCell>[
                               DataCell(Text('${powerUp.purchaseCount}')),
                               DataCell(Text(powerUp.display_name)),
-                              DataCell(Text(_formatPowerUpType(powerUp, gameState))),
+                              DataCell(
+                                  Text(_formatPowerUpType(powerUp, gameState))),
                             ],
                           );
                         }).toList(),
@@ -154,6 +199,23 @@ class _AliensPageState extends State<AliensPage> {
                   ),
                 ],
               ),
+            ),
+            bottomNavigationBar: AnimatedOpacity(
+              duration: Duration(milliseconds: 1000),
+              // Duration of the opacity animation
+              opacity: _showSpinningWheel ? 1.0 : 0.0,
+              // Opacity based on _showSpinningWheel
+              child: _showSpinningWheel
+                  ? InkWell(
+                      onTap: _navigateToSpinWheel,
+                      child: Container(
+                        height: 200,
+                        alignment: Alignment.bottomCenter,
+                        child: Image.asset('assets/images/wheel.png'),
+                      ),
+                    )
+                  : SizedBox
+                      .shrink(), // Use SizedBox.shrink() to completely hide the widget when not shown
             ),
           );
         },

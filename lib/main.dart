@@ -19,6 +19,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late Future<Widget> _initialPage;
+  final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
   @override
   void initState() {
@@ -31,9 +32,9 @@ class _MyAppState extends State<MyApp> {
     List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
     if (users.isNotEmpty) {
       User existingUser = User.fromMap(users.first);
-      return AliensPage(user: existingUser);
+      return AliensPage(user: existingUser, routeObserver: routeObserver);
     } else {
-      return const UserInputPage();
+      return UserInputPage(routeObserver: routeObserver);
     }
   }
 
@@ -50,6 +51,7 @@ class _MyAppState extends State<MyApp> {
                 primarySwatch: Colors.blue,
               ),
               home: snapshot.data!,
+              navigatorObservers: [routeObserver],
             );
           } else {
             return const CircularProgressIndicator();

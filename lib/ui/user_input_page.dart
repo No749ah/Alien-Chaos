@@ -5,8 +5,9 @@ import 'aliens_page.dart';
 
 class UserInputPage extends StatefulWidget {
   final User? user;
+  final RouteObserver<PageRoute> routeObserver;
 
-  const UserInputPage({Key? key, this.user}) : super(key: key);
+  const UserInputPage({Key? key, this.user, required this.routeObserver}) : super(key: key);
 
   @override
   _UserInputPageState createState() => _UserInputPageState();
@@ -30,24 +31,25 @@ class _UserInputPageState extends State<UserInputPage> {
     if (username.isNotEmpty) {
       if (widget.user == null) {
         // Create new user
-        User newUser = User(name: username, aliens: 0, prestige: 1);
+        User newUser = User(name: username, aliens: 0, spinDate: DateTime(2000, 1, 1), prestige: 1);
         await dbHelper.insertUser(newUser.toMap());
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AliensPage(user: newUser)),
+          MaterialPageRoute(builder: (context) => AliensPage(user: newUser, routeObserver: widget.routeObserver)),
         );
       } else {
         // Update existing user
         User updatedUser = User(
-          id: widget.user!.id, // Ensure the user has an id
-          name: username,
-          aliens: widget.user!.aliens,
-          prestige: widget.user!.prestige,
+            id: widget.user!.id, // Ensure the user has an id
+            name: username,
+            aliens: widget.user!.aliens,
+            prestige: widget.user!.prestige,
+            spinDate: widget.user!.spinDate
         );
         await dbHelper.updateUser(updatedUser.toMap());
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AliensPage(user: updatedUser)),
+          MaterialPageRoute(builder: (context) => AliensPage(user: updatedUser, routeObserver: widget.routeObserver)),
         );
       }
     }
@@ -75,7 +77,7 @@ class _UserInputPageState extends State<UserInputPage> {
               onTap: _saveUser,
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: AssetImage('assets/alien.png'), // Your round image asset
+                backgroundImage: AssetImage('assets/images/alien.png'), // Your round image asset
               ),
             ),
           ],

@@ -156,6 +156,12 @@ class GameState extends ChangeNotifier {
     }
   }
 
+  Future<void> setSpinDate() async{
+    _user!.spinDate = DateTime.now();
+    await _dbHelper.updateUser(_user!.toMap());
+    notifyListeners();
+  }
+
   int calculatePowerUpCost(PowerUp powerUp) {
     return (powerUp.baseCost * pow(1.5, powerUp.purchaseCount)).toInt();
   }
