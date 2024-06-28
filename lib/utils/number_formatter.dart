@@ -29,7 +29,7 @@ String reducedFormatNumber(num number) {
   ];
 
   int i = (number == 0) ? 0 : (math.log(number) / math.log(1000)).floor();
-  num reduced = number / math.pow(1000, i);
+  num reduced = (number / math.pow(1000, i)).ceilToDouble() / 10;
   String suffix = suffixes[i];
 
   return '${reduced.toStringAsFixed(1)}$suffix';
@@ -63,7 +63,7 @@ String slightReducedFormatNumber(num number) {
     'C',
   ];
 
-  int i = (number == 0) ? 0 : (math.log(number) / math.log(10000)).floor();
+  int i = (number == 0) ? 0 : (math.log(number) / math.log(1000)).floor();
   num reduced = number / math.pow(1000, i);
   String suffix = suffixes[i];
 

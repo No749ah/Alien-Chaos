@@ -11,7 +11,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosDb.db');
+    _database = await _initDB('alienChaosDatabase.db');
     return _database!;
   }
 
@@ -37,7 +37,7 @@ class DatabaseHelper {
       name TEXT NOT NULL,
       type TEXT NOT NULL,
       value INTEGER NOT NULL,
-      cost INTEGER NOT NULL,
+      cost DOUBLE NOT NULL,
       purchase_count INTEGER NOT NULL DEFAULT 0
     )
     ''';
@@ -64,15 +64,15 @@ class DatabaseHelper {
         'name': 'Alien Crowder',
         'type': 'click',
         'value': 1,
-        'cost': 100,
-        'purchase_count': 0,
+        'cost': 66.666666666666666666666666666667,
+        'purchase_count': 1,
       };
 
       final powerUp2 = {
         'name': 'Alien Magnet',
         'type': 'second',
         'value': 1,
-        'cost': 200,
+        'cost': 150,
         'purchase_count': 0,
       };
 

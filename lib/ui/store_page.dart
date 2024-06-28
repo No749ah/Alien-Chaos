@@ -28,13 +28,13 @@ class _PowerUpShopState extends State<PowerUpShop> {
 
   int _calculateIncrease(PowerUp powerUp) {
     int currentValue = powerUp.type == 'click'
-        ? _gameState.calculateAliensPerClick()
-        : _gameState.calculateAliensPerSecond();
+        ? _gameState.calculateAliensPerClick().toInt()
+        : _gameState.calculateAliensPerSecond().toInt();
 
     powerUp.purchaseCount += 1;
     int newValue = powerUp.type == 'click'
-        ? _gameState.calculateAliensPerClick()
-        : _gameState.calculateAliensPerSecond();
+        ? _gameState.calculateAliensPerClick().toInt()
+        : _gameState.calculateAliensPerSecond().toInt();
     powerUp.purchaseCount -= 1; // revert the change
 
     return newValue - currentValue;
