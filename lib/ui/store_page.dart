@@ -78,22 +78,44 @@ class _PowerUpShopState extends State<PowerUpShop> {
                           final powerUp = gameState.powerUps[index];
                           int currentCost = gameState.calculatePowerUpCost(powerUp);
                           int increase = _calculateIncrease(powerUp);
+                          bool canAfford = gameState.user!.aliens >= currentCost;
 
-                          return ListTile(
-                            title: Text('${powerUp.name} (${reducedFormatNumber(currentCost)} aliens)'),  // Format the cost
-                            subtitle: Text(
-                              'Adds ${powerUp.value} ${powerUp.type == "click" ? "per click" : "per second"}\n'
-                                  'Increase: ${reducedFormatNumber(increase)} ${powerUp.type == "click" ? "per click" : "per second"}',  // Format the increase
+                          return Container(
+                            margin: EdgeInsets.symmetric(vertical: 5), // Add vertical margin
+                            decoration: BoxDecoration(
+                              color: canAfford ? Colors.white : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 1, // Make border thinner
+                              ),
                             ),
-                            onTap: () async {
-                              try {
-                                await gameState.purchasePowerUp(powerUp);
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(e.toString())),
-                                );
+                            child: ListTile(
+                              title: Text(
+                                '${powerUp.name} (${reducedFormatNumber(currentCost)} aliens)',  // Format the cost
+                                style: TextStyle(
+                                  color: canAfford ? Colors.black : Colors.grey,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Adds ${powerUp.value} ${powerUp.type == "click" ? "per click" : "per second"}\n'
+                                    'Increase: ${reducedFormatNumber(increase)} ${powerUp.type == "click" ? "per click" : "per second"}',  // Format the increase
+                                style: TextStyle(
+                                  color: canAfford ? Colors.black : Colors.grey,
+                                ),
+                              ),
+                              onTap: canAfford
+                                  ? () async {
+                                try {
+                                  await gameState.purchasePowerUp(powerUp);
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(e.toString())),
+                                  );
+                                }
                               }
-                            },
+                                  : null,
+                            ),
                           );
                         },
                       ),
