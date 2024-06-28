@@ -1,6 +1,7 @@
 class PowerUp {
   final int id;
   final String name;
+  final String display_name;
   final String type;
   final int value;
   final double multiplier;
@@ -10,6 +11,7 @@ class PowerUp {
   PowerUp({
     required this.id,
     required this.name,
+    required this.display_name,
     required this.type,
     required this.value,
     required this.baseCost,
@@ -20,6 +22,7 @@ class PowerUp {
   factory PowerUp.fromMap(Map<String, dynamic> json) => PowerUp(
     id: json['id'],
     name: json['name'],
+    display_name: json['display_name'],
     type: json['type'],
     value: json['value'],
     multiplier: json['multiplier'],
@@ -31,6 +34,7 @@ class PowerUp {
     return {
       'id': id,
       'name': name,
+      'display_name': display_name,
       'type': type,
       'value': value,
       'cost': baseCost,

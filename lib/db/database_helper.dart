@@ -11,7 +11,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosData.db');
+    _database = await _initDB('AlienChaosDb.db');
     return _database!;
   }
 
@@ -19,7 +19,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
+    return await openDatabase(path, version: 1, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -35,6 +35,7 @@ class DatabaseHelper {
     CREATE TABLE powerups (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      display_name TEXT NOT NULL,
       type TEXT NOT NULL,
       value INTEGER NOT NULL,
       cost DOUBLE NOT NULL,
@@ -55,7 +56,8 @@ class DatabaseHelper {
     final existingPowerUps = await db.query('powerups');
     if (existingPowerUps.isEmpty) {
       final powerUp1 = {
-        'name': 'Alien Crowder',
+        'name': 'starter_apk',
+        'display_name': 'Alien Crowder',
         'type': 'click',
         'value': 1,
         'multiplier': 1.3,
@@ -64,7 +66,8 @@ class DatabaseHelper {
       };
 
       final powerUp2 = {
-        'name': 'Alien Magnet',
+        'name': 'starter_aps',
+        'display_name': 'Alien Magnet',
         'type': 'second',
         'value': 1,
         'multiplier': 1.2,

@@ -92,7 +92,7 @@ class _PowerUpShopState extends State<PowerUpShop> {
                             ),
                             child: ListTile(
                               title: Text(
-                                '${powerUp.name} (${reducedFormatNumber(currentCost)} aliens)',  // Format the cost
+                                '${powerUp.display_name} (${reducedFormatNumber(currentCost)} aliens)',  // Format the cost
                                 style: TextStyle(
                                   color: canAfford ? Colors.black : Colors.grey,
                                 ),
