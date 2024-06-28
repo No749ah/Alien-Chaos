@@ -64,11 +64,11 @@ class _AliensPageState extends State<AliensPage> {
   }
 
   String _formatPowerUpType(PowerUp powerUp, GameState gameState) {
-    String multi = gameState.getFinalMultiplier((powerUp)).toStringAsFixed(2);
+    num multi = gameState.getFinalMultiplier((powerUp));
     if (powerUp.type == 'click') {
-      return '${multi}x Click Multiplier';
+      return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Click Multiplier';
     } else if (powerUp.type == 'second') {
-      return '${(double.parse(multi) - 1).toStringAsFixed(1)}x Aliens / Second';
+      return '${(reducedFormatNumber(double.parse((multi- 1).toStringAsFixed(2))))} x Aliens / Second';
     }
     return '';
   }
@@ -101,7 +101,7 @@ class _AliensPageState extends State<AliensPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'Aliens: ${slightReducedFormatNumber(gameState.user!.aliens)}',  // Format the alien count
+                    'Aliens: ${slightReducedFormatNumber(gameState.user!.aliens)}',
                     style: const TextStyle(
                       fontSize: 24,
                       color: Colors.black,

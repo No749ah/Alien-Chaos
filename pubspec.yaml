@@ -1,5 +1,6 @@
 name: alien_chaos
-description: A new Flutter project.
+description: Click the Aliens.
+
 
 publish_to: 'none' # Remove this line if you want to publish to pub.dev
 

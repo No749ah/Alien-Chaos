@@ -5,8 +5,8 @@ import 'db/database_helper.dart';
 import 'models/user.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure initialized for async operations
-  await DatabaseHelper.instance.database; // Initialize the database
+  WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseHelper.instance.database;
   runApp(const MyApp());
 }
 

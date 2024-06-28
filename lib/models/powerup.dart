@@ -3,9 +3,9 @@ class PowerUp {
   final String name;
   final String display_name;
   final String type;
-  final int value;
-  final double multiplier;
   final double baseCost;
+  final double multiplier;
+  final int purchasable;
   int purchaseCount;
 
   PowerUp({
@@ -13,9 +13,9 @@ class PowerUp {
     required this.name,
     required this.display_name,
     required this.type,
-    required this.value,
     required this.baseCost,
     required this.multiplier,
+    required this.purchasable,
     this.purchaseCount = 0,
   });
 
@@ -24,9 +24,9 @@ class PowerUp {
     name: json['name'],
     display_name: json['display_name'],
     type: json['type'],
-    value: json['value'],
-    multiplier: json['multiplier'],
     baseCost: json['cost'],
+    multiplier: json['multiplier'],
+    purchasable: json['purchasable'],
     purchaseCount: json['purchase_count'],
   );
 
@@ -36,9 +36,9 @@ class PowerUp {
       'name': name,
       'display_name': display_name,
       'type': type,
-      'value': value,
       'cost': baseCost,
       'multiplier': multiplier,
+      'purchasable': purchasable,
       'purchase_count': purchaseCount,
     };
   }

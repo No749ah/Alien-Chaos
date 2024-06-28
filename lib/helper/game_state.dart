@@ -38,7 +38,6 @@ class GameState extends ChangeNotifier {
   void _startAlienGrowth() {
     _timer?.cancel();
     double aliensPerSecond = calculateAliensPerSecond();
-    print(calculateAliensPerSecond());
     double alienFraction = 0.0;
 
     if (aliensPerSecond > 0) {
@@ -72,7 +71,7 @@ class GameState extends ChangeNotifier {
     double multiplier = 1.0;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'second') {
-        multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount);
+        multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
       }
     }
 
@@ -84,9 +83,9 @@ class GameState extends ChangeNotifier {
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click') {
         if (powerUp.name == 'starter_apk')
-          multiplier = pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier;
+          multiplier = (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
         else {
-          multiplier = pow(powerUp.multiplier, powerUp.purchaseCount)*1;
+          multiplier = ((pow(powerUp.multiplier, powerUp.purchaseCount))*user!.prestige);
         }
       }
     }
@@ -96,12 +95,12 @@ class GameState extends ChangeNotifier {
   num getFinalMultiplier(PowerUp powerUp) {
     if (powerUp.type == 'click') {
       if (powerUp.name == 'starter_apk')
-        return pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier;
+        return (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
       else {
-        return pow(powerUp.multiplier, powerUp.purchaseCount)*1;
+        return pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
       }
     } else if (powerUp.type == 'second') {
-      return pow(powerUp.multiplier, powerUp.purchaseCount);
+      return pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
     }
     return 1.0;
   }
@@ -148,6 +147,40 @@ class GameState extends ChangeNotifier {
   int calculatePowerUpCost(PowerUp powerUp) {
     return (powerUp.baseCost * pow(1.5, powerUp.purchaseCount)).toInt();
   }
+
+  double calculatePrestigePoints(int totalAliens, int totalPowerUps, double prestigeMultiplier, double currentPrestige) {
+    double basePoints = (log(totalAliens + 1) + totalPowerUps) * prestigeMultiplier;
+    double bonusPoints = totalPowerUps * 0.5;
+    num divisor = currentPrestige < 1 ? 1 : currentPrestige;
+
+    return ((basePoints + bonusPoints) / divisor);
+  }
+
+  Future<void> prestige() async {
+    if (_user != null) {
+      int totalAliens = _user!.aliens;
+      int totalPowerUps = powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
+      double prestigeMultiplier = 0.1;
+
+      double prestigePoints = calculatePrestigePoints(totalAliens, totalPowerUps, prestigeMultiplier, _user!.prestige);
+
+      _user!.prestige += prestigePoints;
+      _user!.aliens = 0;
+
+      for (var powerUp in powerUps) {
+        if (powerUp.name == 'starter_apk') {
+          powerUp.purchaseCount = 1;
+        } else {
+          powerUp.purchaseCount = 0;
+        }
+        await _dbHelper.updatePowerUp(powerUp);
+      }
+
+      await _dbHelper.updateUser(_user!.toMap());
+      notifyListeners();
+    }
+  }
+
 
   @override
   void dispose() {

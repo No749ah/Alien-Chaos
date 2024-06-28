@@ -1,6 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
+import '../models/powerup.dart';
+
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
 
@@ -11,7 +13,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('AlienChaosDb.db');
+    _database = await _initDB('alianChaosDB.db');
     return _database!;
   }
 
@@ -27,7 +29,8 @@ class DatabaseHelper {
     CREATE TABLE users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      aliens INTEGER NOT NULL
+      aliens INTEGER NOT NULL,
+      prestige DOUBLE NOT NULL
     )
     ''';
 
@@ -37,9 +40,9 @@ class DatabaseHelper {
       name TEXT NOT NULL,
       display_name TEXT NOT NULL,
       type TEXT NOT NULL,
-      value INTEGER NOT NULL,
       cost DOUBLE NOT NULL,
       multiplier DOUBLE NOT NULL DEFAULT 1,
+      purchasable INTEGER NOT NULL DEFAULT 1,
       purchase_count INTEGER NOT NULL DEFAULT 0
     )
     ''';
@@ -59,7 +62,6 @@ class DatabaseHelper {
         'name': 'starter_apk',
         'display_name': 'Alien Crowder',
         'type': 'click',
-        'value': 1,
         'multiplier': 1.3,
         'cost': 66.666666666666666666666666666667,
         'purchase_count': 1,
@@ -69,7 +71,6 @@ class DatabaseHelper {
         'name': 'starter_aps',
         'display_name': 'Alien Magnet',
         'type': 'second',
-        'value': 1,
         'multiplier': 1.2,
         'cost': 150,
         'purchase_count': 0,
@@ -112,6 +113,16 @@ class DatabaseHelper {
       {'purchase_count': newCount},
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<int> updatePowerUp(PowerUp powerUp) async {
+    final db = await instance.database;
+    return await db.update(
+      'powerups',
+      powerUp.toMap(),
+      where: 'name = ?',
+      whereArgs: [powerUp.name],
     );
   }
 
