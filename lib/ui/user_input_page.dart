@@ -4,7 +4,9 @@ import '../models/user.dart';
 import 'aliens_page.dart';
 
 class UserInputPage extends StatefulWidget {
-  const UserInputPage({Key? key}) : super(key: key);
+  final User? user;
+
+  const UserInputPage({Key? key, this.user}) : super(key: key);
 
   @override
   _UserInputPageState createState() => _UserInputPageState();
@@ -18,17 +20,35 @@ class _UserInputPageState extends State<UserInputPage> {
   void initState() {
     super.initState();
     dbHelper = DatabaseHelper.instance;
+    if (widget.user != null) {
+      _usernameController.text = widget.user!.name;
+    }
   }
 
-  Future<void> _createUser() async {
+  Future<void> _saveUser() async {
     final username = _usernameController.text.trim();
     if (username.isNotEmpty) {
-      User newUser = User(name: username, aliens: 0);
-      await dbHelper.insertUser(newUser.toMap());
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => AliensPage(user: newUser)),
-      );
+      if (widget.user == null) {
+        // Create new user
+        User newUser = User(name: username, aliens: 0);
+        await dbHelper.insertUser(newUser.toMap());
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AliensPage(user: newUser)),
+        );
+      } else {
+        // Update existing user
+        User updatedUser = User(
+          id: widget.user!.id, // Ensure the user has an id
+          name: username,
+          aliens: widget.user!.aliens,
+        );
+        await dbHelper.updateUser(updatedUser.toMap());
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AliensPage(user: updatedUser)),
+        );
+      }
     }
   }
 
@@ -50,9 +70,12 @@ class _UserInputPageState extends State<UserInputPage> {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _createUser,
-              child: const Text('Create User'),
+            InkWell(
+              onTap: _saveUser,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage('assets/alien.png'), // Your round image asset
+              ),
             ),
           ],
         ),

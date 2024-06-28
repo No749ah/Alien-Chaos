@@ -11,7 +11,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosDatabase.db');
+    _database = await _initDB('alienChaosDb.db');
     return _database!;
   }
 
@@ -93,9 +93,13 @@ class DatabaseHelper {
 
   Future<int> updateUser(Map<String, dynamic> row) async {
     final db = await instance.database;
-    int id = row['id'];
+    int? id = row['id'];
+    if (id == null) {
+      throw ArgumentError('ID cannot be null for update');
+    }
     return await db.update('users', row, where: 'id = ?', whereArgs: [id]);
   }
+
 
   Future<List<Map<String, dynamic>>> fetchPowerUps() async {
     final db = await instance.database;
