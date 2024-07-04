@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
 import '../models/user.dart';
-import 'aliens_page.dart';
 
 class UserInputPage extends StatefulWidget {
   final User? user;
   final RouteObserver<PageRoute> routeObserver;
+  final VoidCallback onUserUpdated;
 
-  const UserInputPage({Key? key, this.user, required this.routeObserver}) : super(key: key);
+  const UserInputPage({Key? key, this.user, required this.routeObserver, required this.onUserUpdated}) : super(key: key);
 
   @override
   _UserInputPageState createState() => _UserInputPageState();
@@ -29,28 +29,20 @@ class _UserInputPageState extends State<UserInputPage> {
   Future<void> _saveUser() async {
     final username = _usernameController.text.trim();
     if (username.isNotEmpty) {
-      if (widget.user == null) {
-        // Create new user
+      List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
+      if (users.isNotEmpty) {
+        Map<String, dynamic> existingUser = Map<String, dynamic>.from(users.first);
+        existingUser['name'] = username;
+
+        await dbHelper.updateUser(existingUser);
+        User updatedUser = User.fromMap(existingUser);
+        widget.onUserUpdated();
+        Navigator.pop(context, updatedUser);
+      } else {
         User newUser = User(name: username, aliens: 0, spinDate: DateTime(2000, 1, 1), prestige: 1);
         await dbHelper.insertUser(newUser.toMap());
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AliensPage(user: newUser, routeObserver: widget.routeObserver)),
-        );
-      } else {
-        // Update existing user
-        User updatedUser = User(
-            id: widget.user!.id, // Ensure the user has an id
-            name: username,
-            aliens: widget.user!.aliens,
-            prestige: widget.user!.prestige,
-            spinDate: widget.user!.spinDate
-        );
-        await dbHelper.updateUser(updatedUser.toMap());
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AliensPage(user: updatedUser, routeObserver: widget.routeObserver)),
-        );
+        widget.onUserUpdated();
+        Navigator.pop(context, newUser);
       }
     }
   }
@@ -77,7 +69,7 @@ class _UserInputPageState extends State<UserInputPage> {
               onTap: _saveUser,
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage: AssetImage('assets/images/alien.png'), // Your round image asset
+                backgroundImage: AssetImage('assets/images/alien.png'),
               ),
             ),
           ],

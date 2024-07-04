@@ -43,7 +43,7 @@ class _PowerUpShopState extends State<PowerUpShop> {
   double _calculatePrestigeMultiplier() {
     int totalAliens = _gameState.user!.aliens;
     int totalPowerUps = _gameState.powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
-    double prestigeMultiplier = 0.1;
+    double prestigeMultiplier = 0.01;
 
     return _gameState.calculatePrestigePoints(totalAliens, totalPowerUps, prestigeMultiplier, (_gameState.user!.prestige));
   }

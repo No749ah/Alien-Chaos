@@ -37,7 +37,10 @@ class _MyAppState extends State<MyApp> {
       User existingUser = User.fromMap(users.first);
       return AliensPage(user: existingUser, routeObserver: routeObserver);
     } else {
-      return UserInputPage(routeObserver: routeObserver);
+      return UserInputPage(
+        routeObserver: routeObserver,
+        onUserUpdated: () {},
+      );
     }
   }
 
@@ -48,6 +51,7 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      navigatorObservers: [routeObserver],
       home: FutureBuilder<Widget>(
         future: _initialPage,
         builder: (context, snapshot) {

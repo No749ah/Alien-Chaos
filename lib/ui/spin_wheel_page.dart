@@ -82,7 +82,6 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
       _isSpinning = false;
     });
 
-    // Apply the reward
     if (reward.powerupId != 0) {
       await _applyPowerup(reward.powerupId);
     } else {
@@ -105,7 +104,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(
-                'You have already spin today. Please come back tomorrow!')),
+                'You have already spun today. Please come back tomorrow!')),
       );
       return;
     }
@@ -125,7 +124,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
     if (hasVibrator != null && hasVibrator) {
       Vibration.vibrate();
     } else {
-      print('Device does not have a vibrator.');
+      throw ErrorDescription('Device does not have a vibrator.');
     }
   }
 
