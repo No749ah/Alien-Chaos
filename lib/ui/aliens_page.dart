@@ -35,9 +35,14 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   void initializePage() {
+      _user = widget.user;
+
     _gameState = GameState();
-    _gameState.initialize();
-    _user = widget.user;
+    _gameState.initialize().then((_) {
+      if (_gameState.user != null) {
+        _user = _gameState.user!;
+      }
+    });
     setupWheelTimer();
   }
 
@@ -84,6 +89,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   Future<void> _navigateToSpinWheel() async {
+    _shouldReload = true;
     try {
       await Navigator.push(
         context,
@@ -103,11 +109,11 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
         context,
         MaterialPageRoute(
             builder: (context) => UserInputPage(
-                user: widget.user,
+                user: _user,
                 routeObserver: widget.routeObserver,
                 onUserUpdated: () {
                   setState(() {
-                    _shouldReload = true; // Set the flag to true
+                    _shouldReload = true;
                   });
                 })),
       );
@@ -200,7 +206,8 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                             cells: <DataCell>[
                               DataCell(Text('${powerUp.purchaseCount}')),
                               DataCell(Text(powerUp.display_name)),
-                              DataCell(Text(_formatPowerUpType(powerUp, gameState))),
+                              DataCell(
+                                  Text(_formatPowerUpType(powerUp, gameState))),
                             ],
                           );
                         }).toList(),
@@ -215,13 +222,13 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
               opacity: _showSpinningWheel ? 1.0 : 0.0,
               child: _showSpinningWheel
                   ? InkWell(
-                onTap: _navigateToSpinWheel,
-                child: Container(
-                  height: 200,
-                  alignment: Alignment.bottomCenter,
-                  child: Image.asset('assets/images/wheel.png'),
-                ),
-              )
+                      onTap: _navigateToSpinWheel,
+                      child: Container(
+                        height: 200,
+                        alignment: Alignment.bottomCenter,
+                        child: Image.asset('assets/images/wheel.png'),
+                      ),
+                    )
                   : SizedBox.shrink(),
             ),
           );
