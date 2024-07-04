@@ -32,6 +32,7 @@ jobs:
 #        run: flutter test
 
       - name: Increase version (only on main branch)
+        if: github.ref == 'refs/heads/main'
         run: |
           version=$(grep "version:" pubspec.yaml | cut -d':' -f2 | tr -d '[:space:]')
           new_version=$(echo $version | awk -F '.' '{print $1+1"."$2"."$3}')
@@ -42,11 +43,13 @@ jobs:
           git commit -m "Bump version to $new_version"
 
       - name: Build APK (only on main branch)
+        if: github.ref == 'refs/heads/main'
         run: |
           flutter build apk --release
           mkdir -p build/apk
           mv build/app/outputs/flutter-apk/app-release.apk build/apk/
       - name: Publish APK as artifact (only on main branch)
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v2
         with:
           name: apk
