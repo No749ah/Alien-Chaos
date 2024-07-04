@@ -12,7 +12,7 @@ class LoadingScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/loading_screen.png',
+            'assets/images/loading_screen.png',
             fit: BoxFit.cover,
           ),
           Center(

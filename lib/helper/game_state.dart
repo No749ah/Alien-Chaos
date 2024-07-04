@@ -76,39 +76,48 @@ class GameState extends ChangeNotifier {
 
   double calculateAliensPerSecond() {
     double multiplier = 1.0;
+
     for (var powerUp in _powerUps) {
+      if (powerUp.purchaseCount == 0) {
+        return 0.0;
+      }
       if (powerUp.type == 'second' || powerUp.type == 'multiplier') {
-        multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
+        multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
       }
     }
 
-    return ((multiplier) -1);
+    return (multiplier - 1);
   }
 
   double calculateAliensPerClick() {
-    double multiplier = 0.0;
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click' || powerUp.type == 'multiplier') {
-        if (powerUp.name == 'starter_apk')
-          multiplier = (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
+        if (powerUp.name == 'starter_apk') {
+          return (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige*1;
+        }
         else {
-          multiplier = ((pow(powerUp.multiplier, powerUp.purchaseCount))*user!.prestige);
+          return ((pow(powerUp.multiplier, powerUp.purchaseCount))*user!.prestige)*1;
         }
       }
     }
-    return multiplier;
+    return 0.0;
   }
 
   num getFinalMultiplier(PowerUp powerUp) {
+    if (powerUp.purchaseCount == 0 && powerUp.type == 'second') {
+      return 1.0;
+    }
+
     if (powerUp.type == 'click') {
-      if (powerUp.name == 'starter_apk')
-        return (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
-      else {
-        return pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
+      if (powerUp.name == 'starter_apk') {
+        return (pow(powerUp.multiplier, powerUp.purchaseCount) / powerUp.multiplier) * user!.prestige;
+      } else {
+        return pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
       }
     } else if (powerUp.type == 'second' || powerUp.type == 'multiplier') {
-      return pow(powerUp.multiplier, powerUp.purchaseCount)*user!.prestige;
+      return pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
     }
+
     return 1.0;
   }
 
@@ -168,7 +177,7 @@ class GameState extends ChangeNotifier {
 
   double calculatePrestigePoints(int totalAliens, int totalPowerUps, double prestigeMultiplier, double currentPrestige) {
     double basePoints = (log(totalAliens + 1) + totalPowerUps) * prestigeMultiplier;
-    double bonusPoints = totalPowerUps * 0.5;
+    double bonusPoints = totalPowerUps * 0.25;
     num divisor = currentPrestige < 1 ? 1 : currentPrestige;
 
     return ((basePoints + bonusPoints) / divisor);
@@ -178,7 +187,7 @@ class GameState extends ChangeNotifier {
     if (_user != null) {
       int totalAliens = _user!.aliens;
       int totalPowerUps = powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
-      double prestigeMultiplier = 0.1;
+      double prestigeMultiplier = 0.01;
 
       double prestigePoints = calculatePrestigePoints(totalAliens, totalPowerUps, prestigeMultiplier, _user!.prestige);
 

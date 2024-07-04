@@ -109,11 +109,7 @@ class DatabaseHelper {
 
   Future<int> updateUser(Map<String, dynamic> row) async {
     final db = await instance.database;
-    int? id = row['id'];
-    if (id == null) {
-      throw ArgumentError('ID cannot be null for update');
-    }
-    return await db.update('users', row, where: 'id = ?', whereArgs: [id]);
+    return await db.update('users', row);
   }
 
   Future<List<Map<String, dynamic>>> fetchPowerUps() async {

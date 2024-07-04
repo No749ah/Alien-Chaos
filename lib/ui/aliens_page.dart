@@ -26,14 +26,18 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   late Timer _timer;
   late User _user;
   bool _showSpinningWheel = false;
+  bool _shouldReload = false;
 
   @override
   void initState() {
     super.initState();
+    initializePage();
+  }
+
+  void initializePage() {
     _gameState = GameState();
     _gameState.initialize();
     _user = widget.user;
-
     setupWheelTimer();
   }
 
@@ -55,14 +59,10 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   @override
   void didPopNext() {
     super.didPopNext();
-
-    _gameState.initialize();
-    User? _nullableUser = _gameState.user;
-
-    if (_nullableUser != null) {
-      _user = _nullableUser;
+    if (_shouldReload) {
+      initializePage();
+      _shouldReload = false;
     }
-    setupWheelTimer();
   }
 
   Future<void> _incrementAliens() async {
@@ -103,7 +103,13 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
         context,
         MaterialPageRoute(
             builder: (context) => UserInputPage(
-                user: widget.user, routeObserver: widget.routeObserver)),
+                user: widget.user,
+                routeObserver: widget.routeObserver,
+                onUserUpdated: () {
+                  setState(() {
+                    _shouldReload = true; // Set the flag to true
+                  });
+                })),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,9 +121,9 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   String _formatPowerUpType(PowerUp powerUp, GameState gameState) {
     num multi = gameState.getFinalMultiplier((powerUp));
     if (powerUp.type == 'click') {
-      return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Click Multiplier';
+      return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Aliens / Click';
     } else if (powerUp.type == 'second') {
-      return '${(reducedFormatNumber(double.parse((multi- 1).toStringAsFixed(2))))} x Aliens / Second';
+      return '${(reducedFormatNumber(double.parse((multi - 1).toStringAsFixed(2))))} x Aliens/s';
     }
     return '';
   }
@@ -143,7 +149,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
       child: Consumer<GameState>(
         builder: (context, gameState, child) {
           if (gameState.user == null) {
-            return const CircularProgressIndicator(); // Show loading indicator while initializing
+            return const CircularProgressIndicator();
           }
           return Scaffold(
             appBar: AppBar(
@@ -156,10 +162,6 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                 IconButton(
                   icon: Icon(Icons.settings),
                   onPressed: _navigateToUserInputPage,
-                ),
-                IconButton(
-                  icon: Icon(Icons.casino),
-                  onPressed: _navigateToSpinWheel,
                 ),
               ],
             ),
@@ -179,8 +181,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                     onTap: _incrementAliens,
                     child: CircleAvatar(
                       radius: 100,
-                      backgroundImage: AssetImage(
-                          'assets/images/alien.png'), // Your round image asset
+                      backgroundImage: AssetImage('assets/images/alien.png'),
                     ),
                   ),
                   const SizedBox(height: 50),
@@ -192,38 +193,36 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                           DataColumn(label: Text('Name')),
                           DataColumn(label: Text('Type')),
                         ],
-                        rows: gameState.powerUps.map((powerUp) {
+                        rows: gameState.powerUps
+                            .where((powerUp) => powerUp.purchaseCount > 0)
+                            .map((powerUp) {
                           return DataRow(
                             cells: <DataCell>[
                               DataCell(Text('${powerUp.purchaseCount}')),
                               DataCell(Text(powerUp.display_name)),
-                              DataCell(
-                                  Text(_formatPowerUpType(powerUp, gameState))),
+                              DataCell(Text(_formatPowerUpType(powerUp, gameState))),
                             ],
                           );
                         }).toList(),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
             bottomNavigationBar: AnimatedOpacity(
               duration: Duration(milliseconds: 1000),
-              // Duration of the opacity animation
               opacity: _showSpinningWheel ? 1.0 : 0.0,
-              // Opacity based on _showSpinningWheel
               child: _showSpinningWheel
                   ? InkWell(
-                      onTap: _navigateToSpinWheel,
-                      child: Container(
-                        height: 200,
-                        alignment: Alignment.bottomCenter,
-                        child: Image.asset('assets/images/wheel.png'),
-                      ),
-                    )
-                  : SizedBox
-                      .shrink(), // Use SizedBox.shrink() to completely hide the widget when not shown
+                onTap: _navigateToSpinWheel,
+                child: Container(
+                  height: 200,
+                  alignment: Alignment.bottomCenter,
+                  child: Image.asset('assets/images/wheel.png'),
+                ),
+              )
+                  : SizedBox.shrink(),
             ),
           );
         },
