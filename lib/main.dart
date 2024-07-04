@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'db/database_helper.dart';
+import 'helper/notification.dart';
 import 'models/user.dart';
 import 'ui/aliens_page.dart';
 import 'ui/user_input_page.dart';
@@ -8,6 +9,10 @@ import 'ui/loading_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseHelper.instance.database;
+
+  var notificationController = NotificationController();
+  await notificationController.initialize();
+
   runApp(const MyApp());
 }
 
