@@ -18,7 +18,9 @@ class NotificationController {
     );
 
     await requestNotificationPermissions();
-    await scheduleDailyNotification();
+    if (!(await AwesomeNotifications().isNotificationAllowed())) {
+      await scheduleDailyNotification();
+    }
   }
 
   Future<void> requestNotificationPermissions() async {

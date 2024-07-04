@@ -124,8 +124,6 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
     bool? hasVibrator = await Vibration.hasVibrator();
     if (hasVibrator != null && hasVibrator) {
       Vibration.vibrate();
-    } else {
-      throw ErrorDescription('Device does not have a vibrator.');
     }
   }
 

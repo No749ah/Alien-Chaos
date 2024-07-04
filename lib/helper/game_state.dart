@@ -85,7 +85,6 @@ class GameState extends ChangeNotifier {
         multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
       }
     }
-
     return (multiplier - 1);
   }
 
@@ -93,10 +92,10 @@ class GameState extends ChangeNotifier {
     for (var powerUp in _powerUps) {
       if (powerUp.type == 'click' || powerUp.type == 'multiplier') {
         if (powerUp.name == 'starter_apk') {
-          return (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige*1;
+          return (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
         }
         else {
-          return ((pow(powerUp.multiplier, powerUp.purchaseCount))*user!.prestige)*1;
+          return ((pow(powerUp.multiplier, powerUp.purchaseCount))*user!.prestige);
         }
       }
     }
