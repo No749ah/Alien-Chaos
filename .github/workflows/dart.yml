@@ -39,9 +39,14 @@ jobs:
 
       - name: Build APK (only on main branch)
         run: |
+          flutter create -t app new_alien_chaos
+          
+          cp -r Alien-Chaos ci_alien_chaos
+          
+          cd ci_alien_chaos
+          flutter pub get
+          
           flutter build apk --release
-          mkdir -p build/apk
-          mv build/app/outputs/flutter-apk/app-release.apk build/apk/
 
       - name: Publish APK as artifact (only on main branch)
         uses: actions/upload-artifact@v2
