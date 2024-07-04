@@ -8,13 +8,18 @@ class UserInputPage extends StatefulWidget {
   final RouteObserver<PageRoute> routeObserver;
   final VoidCallback onUserUpdated;
 
-  const UserInputPage({Key? key, this.user, required this.routeObserver, required this.onUserUpdated}) : super(key: key);
+  const UserInputPage(
+      {Key? key,
+      this.user,
+      required this.routeObserver,
+      required this.onUserUpdated})
+      : super(key: key);
 
   @override
   _UserInputPageState createState() => _UserInputPageState();
 }
 
-class _UserInputPageState extends State<UserInputPage> {
+class _UserInputPageState extends State<UserInputPage> with RouteAware {
   final TextEditingController _usernameController = TextEditingController();
   late DatabaseHelper dbHelper;
 
@@ -22,9 +27,27 @@ class _UserInputPageState extends State<UserInputPage> {
   void initState() {
     super.initState();
     dbHelper = DatabaseHelper.instance;
+
+    initializePage();
+  }
+
+  void initializePage() {
     if (widget.user != null) {
       _usernameController.text = widget.user!.name;
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    widget.routeObserver
+        .subscribe(this, ModalRoute.of(context)! as PageRoute<dynamic>);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    initializePage();
   }
 
   Future<void> _saveUser() async {
@@ -32,7 +55,8 @@ class _UserInputPageState extends State<UserInputPage> {
     if (username.isNotEmpty) {
       List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
       if (users.isNotEmpty) {
-        Map<String, dynamic> existingUser = Map<String, dynamic>.from(users.first);
+        Map<String, dynamic> existingUser =
+            Map<String, dynamic>.from(users.first);
         existingUser['name'] = username;
 
         await dbHelper.updateUser(existingUser);
@@ -40,7 +64,11 @@ class _UserInputPageState extends State<UserInputPage> {
         widget.onUserUpdated();
         Navigator.pop(context, updatedUser);
       } else {
-        User newUser = User(name: username, aliens: 0, spinDate: DateTime(2000, 1, 1), prestige: 1);
+        User newUser = User(
+            name: username,
+            aliens: 0,
+            spinDate: DateTime(2000, 1, 1),
+            prestige: 1);
         await dbHelper.insertUser(newUser.toMap());
         widget.onUserUpdated();
         Navigator.pushReplacement(
