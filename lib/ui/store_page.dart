@@ -22,10 +22,6 @@ class _PowerUpShopState extends State<PowerUpShop> {
     _gameState = widget.gameState;
   }
 
-  Future<void> _navigateToAliens() async {
-    Navigator.pop(context);
-  }
-
   double _calculateIncrease(PowerUp powerUp) {
     double currentValue = (powerUp.type == 'click'
         ? _gameState.calculateAliensPerClick()
@@ -57,109 +53,103 @@ class _PowerUpShopState extends State<PowerUpShop> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvoked: (a) async {
-        _navigateToAliens();
-        return;
-      },
-      child: ChangeNotifierProvider.value(
-        value: _gameState,
-        child: Consumer<GameState>(
-          builder: (context, gameState, child) {
-            double prestigeMultiplier = _calculatePrestigeMultiplier();
-            List<PowerUp> purchasablePowerUps = gameState.powerUps.where((powerUp) => powerUp.purchasable == 1).toList();
+    return ChangeNotifierProvider.value(
+      value: _gameState,
+      child: Consumer<GameState>(
+        builder: (context, gameState, child) {
+          double prestigeMultiplier = _calculatePrestigeMultiplier();
+          List<PowerUp> purchasablePowerUps = gameState.powerUps.where((powerUp) => powerUp.purchasable == 1).toList();
 
-            return Scaffold(
-              appBar: AppBar(
-                title: Text('Power-Up Shop'),
-                leading: IconButton(
-                  icon: Icon(Icons.arrow_back),
-                  onPressed: _navigateToAliens,
-                ),
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Power-Up Shop'),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
               ),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Aliens: ${slightReducedFormatNumber(gameState.user!.aliens)}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: Colors.black,
-                      ),
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Aliens: ${slightReducedFormatNumber(gameState.user!.aliens)}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: purchasablePowerUps.length,
-                        itemBuilder: (context, index) {
-                          final powerUp = purchasablePowerUps[index];
-                          int currentCost = gameState.calculatePowerUpCost(powerUp);
-                          double increase = _calculateIncrease(powerUp);
-                          bool canAfford = gameState.user!.aliens >= currentCost;
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: purchasablePowerUps.length,
+                      itemBuilder: (context, index) {
+                        final powerUp = purchasablePowerUps[index];
+                        int currentCost = gameState.calculatePowerUpCost(powerUp);
+                        double increase = _calculateIncrease(powerUp);
+                        bool canAfford = gameState.user!.aliens >= currentCost;
 
-                          return Container(
-                            margin: EdgeInsets.symmetric(vertical: 5),
-                            decoration: BoxDecoration(
-                              color: canAfford ? Colors.white : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Colors.black,
-                                width: 1,
+                        return Container(
+                          margin: EdgeInsets.symmetric(vertical: 5),
+                          decoration: BoxDecoration(
+                            color: canAfford ? Colors.white : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Colors.black,
+                              width: 1,
+                            ),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              '${powerUp.display_name} (${reducedFormatNumber(currentCost)} Aliens)',
+                              style: TextStyle(
+                                color: canAfford ? Colors.black : Colors.grey,
                               ),
                             ),
-                            child: ListTile(
-                              title: Text(
-                                '${powerUp.display_name} (${reducedFormatNumber(currentCost)} Aliens)',
-                                style: TextStyle(
-                                  color: canAfford ? Colors.black : Colors.grey,
-                                ),
+                            subtitle: Text(
+                              'Multiplies ${powerUp.multiplier}x ${powerUp.type == "click" ? "clicks" : "per second"}\n'
+                                  'Increase: ${reducedFormatNumber(increase)} ${powerUp.type == "click" ? "per click" : "per second"}',
+                              style: TextStyle(
+                                color: canAfford ? Colors.black : Colors.grey,
                               ),
-                              subtitle: Text(
-                                'Multiplies ${powerUp.multiplier}x ${powerUp.type == "click" ? "clicks" : "per second"}\n'
-                                    'Increase: ${reducedFormatNumber(increase)} ${powerUp.type == "click" ? "per click" : "per second"}',
-                                style: TextStyle(
-                                  color: canAfford ? Colors.black : Colors.grey,
-                                ),
-                              ),
-                              onTap: canAfford
-                                  ? () async {
-                                try {
-                                  await gameState.purchasePowerUp(powerUp);
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
+                            ),
+                            onTap: canAfford
+                                ? () async {
+                              try {
+                                await gameState.purchasePowerUp(powerUp);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
                               }
-                                  : null,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            '${prestigeMultiplier.toStringAsFixed(2)}x Multiplier with Prestige',
-                            style: TextStyle(fontSize: 24, color: Colors.black),
+                            }
+                                : null,
                           ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: _performPrestige,
-                            child: Text('Prestige'),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          '${prestigeMultiplier.toStringAsFixed(2)}x Multiplier with Prestige',
+                          style: TextStyle(fontSize: 24, color: Colors.black),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _performPrestige,
+                          child: Text('Prestige'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

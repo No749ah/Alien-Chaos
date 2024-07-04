@@ -35,15 +35,15 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   void initializePage() {
-      _user = widget.user;
+    _user = widget.user;
 
     _gameState = GameState();
     _gameState.initialize().then((_) {
       if (_gameState.user != null) {
         _user = _gameState.user!;
+        setupWheelTimer();
       }
     });
-    setupWheelTimer();
   }
 
   @override
@@ -137,7 +137,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   void setupWheelTimer() {
     _showSpinningWheel = false;
 
-    if (timeHelper.isPreviousDay(_user.spinDate)) {
+    if (timeHelper.isPreviousDay(_gameState.user!.spinDate)) {
       Duration difference = Duration(seconds: 45);
 
       _timer = Timer(difference, () {
@@ -164,6 +164,10 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                 IconButton(
                   icon: Icon(Icons.shop),
                   onPressed: _navigateToPowerUpShop,
+                ),
+                IconButton(
+                  icon: Icon(Icons.casino),
+                  onPressed: _navigateToSpinWheel,
                 ),
                 IconButton(
                   icon: Icon(Icons.settings),
