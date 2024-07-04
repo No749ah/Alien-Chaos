@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:alien_chaos/helper/timeHelper.dart';
 import 'package:flutter/material.dart';
 import 'package:shake/shake.dart';
 import 'package:vibration/vibration.dart';
@@ -101,7 +102,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
   }
 
   void _startSpinning() {
-    if (_isSpinning || _user.spinDate.day >= DateTime.now().day) {
+    if (_isSpinning || !timeHelper.isPreviousDay(_user.spinDate)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(

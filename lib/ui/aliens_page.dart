@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../helper/game_state.dart';
+import '../helper/timeHelper.dart';
 import '../models/powerup.dart';
 import '../models/user.dart';
 import '../utils/number_formatter.dart';
@@ -124,7 +125,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   void setupWheelTimer() {
     _showSpinningWheel = false;
 
-    if (_user.spinDate.day < DateTime.now().day) {
+    if (timeHelper.isPreviousDay(_user.spinDate)) {
       Duration difference = Duration(seconds: 45);
 
       _timer = Timer(difference, () {

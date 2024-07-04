@@ -21,6 +21,7 @@ dependencies:
   shake: ^2.2.0
   flutter_fortune_wheel: any
   rxdart: ^0.28.0
+  awesome_notifications: ^0.7.3
 
 dev_dependencies:
   flutter_test:
