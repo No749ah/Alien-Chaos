@@ -13,10 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '2.10.5'
 
       - name: Install dependencies
         run: flutter pub get
@@ -24,5 +28,26 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      #- name: Run tests
-      #  run: flutter test
+#      - name: Run tests
+#        run: flutter test
+
+      - name: Increase version (only on main branch)
+        run: |
+          version=$(grep "version:" pubspec.yaml | cut -d':' -f2 | tr -d '[:space:]')
+          new_version=$(echo $version | awk -F '.' '{print $1+1"."$2"."$3}')
+          sed -i "s/version:.*/version: $new_version/" pubspec.yaml
+          git config --global user.email "github-actions-bot@example.com"
+          git config --global user.name "GitHub Actions Bot"
+          git add pubspec.yaml
+          git commit -m "Bump version to $new_version"
+
+      - name: Build APK (only on main branch)
+        run: |
+          flutter build apk --release
+          mkdir -p build/apk
+          mv build/app/outputs/flutter-apk/app-release.apk build/apk/
+      - name: Publish APK as artifact (only on main branch)
+        uses: actions/upload-artifact@v2
+        with:
+          name: apk
+          path: build/apk/app-release.apk

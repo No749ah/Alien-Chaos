@@ -57,10 +57,10 @@ class _PowerUpShopState extends State<PowerUpShop> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (a) async {
         _navigateToAliens();
-        return false;
+        return;
       },
       child: ChangeNotifierProvider.value(
         value: _gameState,
