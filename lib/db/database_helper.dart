@@ -13,7 +13,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosDataDbDBTest3.db');
+    _database = await _initDB('alienChaosDB.db');
     return _database!;
   }
 

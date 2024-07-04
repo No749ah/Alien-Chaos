@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
 import '../models/user.dart';
+import 'aliens_page.dart';
 
 class UserInputPage extends StatefulWidget {
   final User? user;
@@ -42,7 +43,10 @@ class _UserInputPageState extends State<UserInputPage> {
         User newUser = User(name: username, aliens: 0, spinDate: DateTime(2000, 1, 1), prestige: 1);
         await dbHelper.insertUser(newUser.toMap());
         widget.onUserUpdated();
-        Navigator.pop(context, newUser);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AliensPage(user: newUser, routeObserver: widget.routeObserver,)),
+        );
       }
     }
   }

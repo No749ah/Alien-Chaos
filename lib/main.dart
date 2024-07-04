@@ -44,7 +44,11 @@ class _MyAppState extends State<MyApp> {
     } else {
       return UserInputPage(
         routeObserver: routeObserver,
-        onUserUpdated: () {},
+        onUserUpdated: () {
+          setState(() {
+            _initialPage = _initializeApp();
+          });
+        },
       );
     }
   }
