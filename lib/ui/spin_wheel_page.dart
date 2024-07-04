@@ -31,7 +31,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
     _user = widget.gameState.user!;
     _rewards = [];
 
-    ShakeDetector detector = ShakeDetector.autoStart(onPhoneShake: () {
+    ShakeDetector.autoStart(onPhoneShake: () {
       _startSpinning();
     });
   }
