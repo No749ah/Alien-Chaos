@@ -39,7 +39,7 @@ jobs:
 
       - name: Build APK (only on main branch)
         run: |
-          flutter build apk
+          flutter build apk --release
           mkdir -p build/apk
           mv build/app/outputs/flutter-apk/app-release.apk build/apk/
 
