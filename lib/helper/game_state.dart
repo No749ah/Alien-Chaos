@@ -18,7 +18,6 @@ class GameState extends ChangeNotifier {
     _user = user;
     notifyListeners();
   }
-
   List<PowerUp> get powerUps => _powerUps;
   set powerUps(List<PowerUp> powerUps) {
     _powerUps = powerUps;
