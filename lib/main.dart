@@ -37,10 +37,9 @@ class _MyAppState extends State<MyApp> {
     await Future.delayed(Duration(seconds: 3));
 
     final dbHelper = DatabaseHelper.instance;
-    List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
-    if (users.isNotEmpty) {
-      User existingUser = User.fromMap(users.first);
-      return AliensPage(user: existingUser, routeObserver: routeObserver);
+    User? user = await dbHelper.fetchUser();
+    if (user != null) {
+      return AliensPage(user: user, routeObserver: routeObserver);
     } else {
       return UserInputPage(
         routeObserver: routeObserver,

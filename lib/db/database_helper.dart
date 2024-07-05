@@ -1,3 +1,4 @@
+import 'package:alien_chaos/models/user.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -13,7 +14,7 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB('alienChaosDB.db');
+    _database = await _initDB('alienChaosDBData1.db');
     return _database!;
   }
 
@@ -29,7 +30,7 @@ class DatabaseHelper {
     CREATE TABLE users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      aliens INTEGER NOT NULL,
+      aliens DOUBLE NOT NULL,
       spinDate TEXT NOT NULL,
       prestige DOUBLE NOT NULL
     )
@@ -65,8 +66,8 @@ class DatabaseHelper {
         'display_name': 'Alien Crowder',
         'type': 'click',
         'multiplier': 1.3,
-        'cost': 66.666666666666666666666666666667,
-        'purchase_count': 1,
+        'cost': 100,
+        'purchase_count': 0,
         'purchasable': 1,
       };
 
@@ -97,24 +98,31 @@ class DatabaseHelper {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchUsers() async {
+  Future<User?> fetchUser() async {
     final db = await instance.database;
-    return await db.query('users');
+    var users = await db.query('users');
+
+    if(users.isEmpty){
+      return null;
+    }
+
+    return User.fromMap(users.first);
   }
 
-  Future<int> insertUser(Map<String, dynamic> row) async {
+  Future<int> insertUser(User user) async {
     final db = await instance.database;
-    return await db.insert('users', row);
+    return await db.insert('users', user.toMap());
   }
 
-  Future<int> updateUser(Map<String, dynamic> row) async {
+  Future<int> updateUser(User? user) async {
     final db = await instance.database;
-    return await db.update('users', row);
+    return await db.update('users', user!.toMap());
   }
 
-  Future<List<Map<String, dynamic>>> fetchPowerUps() async {
+  Future<List<PowerUp>> fetchPowerUps() async {
     final db = await instance.database;
-    return await db.query('powerups');
+    var dbPowerUps = await db.query('powerups');
+    return dbPowerUps.map((data) => PowerUp.fromMap(data)).toList();
   }
 
   Future<int> updatePowerUpPurchaseCount(int id, int newCount) async {

@@ -9,64 +9,34 @@ class GameState extends ChangeNotifier {
   User? _user;
   List<PowerUp> _powerUps = [];
   Timer? _timer;
-  double _alienFraction = 0.0;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   User? get user => _user;
+
   List<PowerUp> get powerUps => _powerUps;
 
   Future<void> initialize() async {
-    await _fetchUser();
-    await fetchPowerUps();
+    _user = await _dbHelper.fetchUser();
+    _powerUps = await _dbHelper.fetchPowerUps();
     _startAlienGrowth();
-  }
-
-  Future<void> _fetchUser() async {
-    List<Map<String, dynamic>> users = await _dbHelper.fetchUsers();
-    if (users.isNotEmpty) {
-      _user = User.fromMap(users.first);
-      notifyListeners();
-    }
-  }
-
-  Future<List<PowerUp>> fetchPowerUps() async {
-    List<Map<String, dynamic>> powerUpData = await _dbHelper.fetchPowerUps();
-    _powerUps = powerUpData.map((data) => PowerUp.fromMap(data)).toList();
     notifyListeners();
-    return _powerUps;
   }
 
   Future<void> updatePowerUpPurchaseCount(int id, int newCount) async {
     await _dbHelper.updatePowerUpPurchaseCount(id, newCount);
-    await fetchPowerUps();
+    _powerUps = await _dbHelper.fetchPowerUps();
     notifyListeners();
   }
 
   void _startAlienGrowth() {
     _timer?.cancel();
-    double aliensPerSecond = calculateAliensPerSecond();
-    double alienFraction = 0.0;
-
-    if (aliensPerSecond > 0) {
+    if (calculateAliensPerSecond() > 0) {
       _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
         if (_user != null) {
-          alienFraction += aliensPerSecond;
-
-          alienFraction = double.parse(alienFraction.toStringAsFixed(5));
-
-          int wholeAliens = alienFraction.floor();
-          double fractionalAliens = alienFraction - wholeAliens;
-
-          if (fractionalAliens >= 1.0) {
-            wholeAliens += 1;
-            fractionalAliens -= 1.0;
-          }
-
-          alienFraction = fractionalAliens;
-
-          if (wholeAliens > 0) {
-            _user!.aliens += wholeAliens;
-            await _dbHelper.updateUser(_user!.toMap());
+          var aliensPerSecond = calculateAliensPerSecond();
+          if (aliensPerSecond > 0) {
+            _user!.aliens += aliensPerSecond;
+            await _dbHelper.updateUser(_user);
             notifyListeners();
           }
         }
@@ -75,78 +45,45 @@ class GameState extends ChangeNotifier {
   }
 
   double calculateAliensPerSecond() {
-    double multiplier = 1.0;
-
-    for (var powerUp in _powerUps) {
-      if (powerUp.purchaseCount == 0) {
-        return 0.0;
-      }
-      if (powerUp.type == 'second' || powerUp.type == 'multiplier') {
-        multiplier *= pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
-      }
-    }
-    return (multiplier - 1);
+    return calculatePowerupMultiplier(['second', 'multiplier']);
   }
 
   double calculateAliensPerClick() {
+    var aliensPerClick = calculatePowerupMultiplier(['click', 'multiplier']);
+    return aliensPerClick < 1 ? 1 : aliensPerClick;
+  }
+
+  double calculatePowerupMultiplier(List<String> powerUpTypes) {
+    double multiplier = 1.0;
+    bool hasChanged = false;
     for (var powerUp in _powerUps) {
-      if (powerUp.type == 'click' || powerUp.type == 'multiplier') {
-        if (powerUp.name == 'starter_apk') {
-          return (pow(powerUp.multiplier, powerUp.purchaseCount)/powerUp.multiplier)*user!.prestige;
-        }
-        else {
-          return ((pow(powerUp.multiplier, powerUp.purchaseCount))*user!.prestige);
-        }
+      if (powerUpTypes.contains(powerUp.type) && powerUp.purchaseCount != 0) {
+        hasChanged = true;
+        multiplier *= getMultiplier(powerUp);
       }
     }
-    return 0.0;
+    return hasChanged ? multiplier : 0;
   }
 
-  num getFinalMultiplier(PowerUp powerUp) {
-    if (powerUp.purchaseCount == 0 && powerUp.type == 'second') {
-      return 1.0;
-    }
-
-    if (powerUp.type == 'click') {
-      if (powerUp.name == 'starter_apk') {
-        return (pow(powerUp.multiplier, powerUp.purchaseCount) / powerUp.multiplier) * user!.prestige;
-      } else {
-        return pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
-      }
-    } else if (powerUp.type == 'second' || powerUp.type == 'multiplier') {
-      return pow(powerUp.multiplier, powerUp.purchaseCount) * user!.prestige;
-    }
-
-    return 1.0;
+  num getMultiplier(PowerUp powerUp) {
+    return pow(powerUp.multiplier, powerUp.purchaseCount) *
+        (user?.prestige ?? 1.0);
   }
 
-  Future<void> incrementAliens() async {
+  Future<void> executeAlienIncrement() async {
     if (_user != null) {
       double aliensPerClick = calculateAliensPerClick();
-      _alienFraction += aliensPerClick;
 
-      _alienFraction = double.parse(_alienFraction.toStringAsFixed(5));
+      if (aliensPerClick < 1) aliensPerClick = 1;
 
-      int wholeAliens = _alienFraction.floor();
-      double fractionalAliens = _alienFraction - wholeAliens;
-
-      if (fractionalAliens >= 1.0) {
-        wholeAliens += 1;
-        fractionalAliens -= 1.0;
-      }
-
-      _alienFraction = fractionalAliens;
-
-      if (wholeAliens > 0) {
-        _user!.aliens += wholeAliens;
-        await _dbHelper.updateUser(_user!.toMap());
-        notifyListeners();
-      }
+      _user!.aliens += aliensPerClick;
+      await _dbHelper.updateUser(_user);
+      notifyListeners();
     }
   }
 
-  Future<void> updateUser(Map<String, dynamic> userMap) async {
-    await _dbHelper.updateUser(userMap);
+  Future<void> updateUser(User user) async {
+    await _dbHelper.updateUser(user);
     notifyListeners();
   }
 
@@ -155,8 +92,9 @@ class GameState extends ChangeNotifier {
     if (_user != null && _user!.aliens >= currentCost) {
       _user!.aliens -= currentCost;
       powerUp.purchaseCount += 1;
-      await _dbHelper.updatePowerUpPurchaseCount(powerUp.id, powerUp.purchaseCount);
-      await _dbHelper.updateUser(_user!.toMap());
+      await _dbHelper.updatePowerUpPurchaseCount(
+          powerUp.id, powerUp.purchaseCount);
+      await _dbHelper.updateUser(_user);
       notifyListeners();
       initialize();
     } else {
@@ -164,18 +102,20 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  Future<void> setSpinDate() async{
-    _user!.spinDate = DateTime.now();
-    await _dbHelper.updateUser(_user!.toMap());
-    notifyListeners();
-  }
-
   int calculatePowerUpCost(PowerUp powerUp) {
     return (powerUp.baseCost * pow(1.5, powerUp.purchaseCount)).toInt();
   }
 
-  double calculatePrestigePoints(int totalAliens, int totalPowerUps, double prestigeMultiplier, double currentPrestige) {
-    double basePoints = (log(totalAliens + 1) + totalPowerUps) * prestigeMultiplier;
+  Future<void> setSpinDate() async {
+    _user!.spinDate = DateTime.now();
+    await _dbHelper.updateUser(_user);
+    notifyListeners();
+  }
+
+  double calculatePrestigePoints(double totalAliens, int totalPowerUps,
+      double prestigeMultiplier, double currentPrestige) {
+    double basePoints =
+        (log(totalAliens + 1) + totalPowerUps) * prestigeMultiplier;
     double bonusPoints = totalPowerUps * 0.25;
     num divisor = currentPrestige < 1 ? 1 : currentPrestige;
 
@@ -184,29 +124,27 @@ class GameState extends ChangeNotifier {
 
   Future<void> prestige() async {
     if (_user != null) {
-      int totalAliens = _user!.aliens;
-      int totalPowerUps = powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
+      double totalAliens = _user!.aliens;
+      int totalPowerUps =
+          powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
       double prestigeMultiplier = 0.01;
 
-      double prestigePoints = calculatePrestigePoints(totalAliens, totalPowerUps, prestigeMultiplier, _user!.prestige);
+      double prestigePoints = calculatePrestigePoints(
+          totalAliens, totalPowerUps, prestigeMultiplier, _user!.prestige);
 
       _user!.prestige += prestigePoints;
       _user!.aliens = 0;
 
       for (var powerUp in powerUps) {
-        if (powerUp.name == 'starter_apk') {
-          powerUp.purchaseCount = 1;
-        } else {
-          powerUp.purchaseCount = 0;
-        }
+        powerUp.purchaseCount = 0;
+
         await _dbHelper.updatePowerUp(powerUp);
       }
 
-      await _dbHelper.updateUser(_user!.toMap());
+      await _dbHelper.updateUser(_user);
       notifyListeners();
     }
   }
-
 
   @override
   void dispose() {

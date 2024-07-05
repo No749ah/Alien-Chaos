@@ -48,7 +48,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
 
   Future<Reward> setupReward(double multiplier) async {
     return Reward(
-        name: (_user.aliens * multiplier).toString() + ' Aliens',
+        name: (_user.aliens * multiplier).round().toString() + ' Aliens',
         aliens: _user.aliens);
   }
 
@@ -67,7 +67,7 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
       _rewards.add(await setupReward(1.5));
       _rewards.add(await setupReward(2));
 
-      var powerUps = await widget.gameState.fetchPowerUps();
+      var powerUps = widget.gameState.powerUps;
       _rewards.add(
           await setupPowerUpReward(powerUps.firstWhere((pu) => pu.id == 900)));
 
@@ -91,17 +91,17 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
       await _applyPowerup(reward.powerupId);
     } else {
       _user.aliens += reward.aliens;
-      await widget.gameState.updateUser(_user.toMap());
+      await widget.gameState.updateUser(_user);
     }
   }
 
   Future<void> _applyPowerup(int id) async {
-    var powerUps = await widget.gameState.fetchPowerUps();
+    var powerUps = widget.gameState.powerUps;
     var powerUp = powerUps.firstWhere((pu) => pu.id == id);
     powerUp.purchaseCount += 1;
     await widget.gameState
         .updatePowerUpPurchaseCount(powerUp.id, powerUp.purchaseCount);
-    await widget.gameState.updateUser(_user.toMap());
+    await widget.gameState.updateUser(_user);
   }
 
   void _startSpinning() {

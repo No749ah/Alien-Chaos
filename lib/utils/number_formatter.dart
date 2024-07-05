@@ -43,6 +43,7 @@ String reducedFormatNumber(num number) {
 }
 
 String slightReducedFormatNumber(num number) {
+  number = number.round();
   if (number < 1000) {
     String fixedNumber = number.toStringAsFixed(3);
     if (fixedNumber.endsWith('000')) {
