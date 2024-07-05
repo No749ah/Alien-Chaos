@@ -53,27 +53,27 @@ class _UserInputPageState extends State<UserInputPage> with RouteAware {
   Future<void> _saveUser() async {
     final username = _usernameController.text.trim();
     if (username.isNotEmpty) {
-      List<Map<String, dynamic>> users = await dbHelper.fetchUsers();
-      if (users.isNotEmpty) {
-        Map<String, dynamic> existingUser =
-            Map<String, dynamic>.from(users.first);
-        existingUser['name'] = username;
-
-        await dbHelper.updateUser(existingUser);
-        User updatedUser = User.fromMap(existingUser);
+      var user = await dbHelper.fetchUser();
+      if (user != null) {
+        user.name = username;
+        await dbHelper.updateUser(user);
         widget.onUserUpdated();
-        Navigator.pop(context, updatedUser);
+        Navigator.pop(context, user);
       } else {
         User newUser = User(
             name: username,
             aliens: 0,
             spinDate: DateTime(2000, 1, 1),
             prestige: 1);
-        await dbHelper.insertUser(newUser.toMap());
+        await dbHelper.insertUser(newUser);
         widget.onUserUpdated();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AliensPage(user: newUser, routeObserver: widget.routeObserver,)),
+          MaterialPageRoute(
+              builder: (context) => AliensPage(
+                    user: newUser,
+                    routeObserver: widget.routeObserver,
+                  )),
         );
       }
     }

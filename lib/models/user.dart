@@ -1,7 +1,7 @@
 class User {
   final int? id;
-  final String name;
-  int aliens;
+  String name;
+  double aliens;
   DateTime spinDate;
   double prestige;
 
@@ -34,7 +34,7 @@ class User {
     return map;
   }
 
-  User copyWith({int? id, String? name, int? aliens, double? prestige, DateTime? spinDate}) {
+  User copyWith({int? id, String? name, double? aliens, double? prestige, DateTime? spinDate}) {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,

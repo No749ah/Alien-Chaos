@@ -71,7 +71,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   Future<void> _incrementAliens() async {
-    await _gameState.incrementAliens();
+    await _gameState.executeAlienIncrement();
   }
 
   Future<void> _navigateToPowerUpShop() async {
@@ -125,11 +125,11 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   String _formatPowerUpType(PowerUp powerUp, GameState gameState) {
-    num multi = gameState.getFinalMultiplier((powerUp));
+    num multi = gameState.getMultiplier((powerUp));
     if (powerUp.type == 'click') {
       return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Aliens / Click';
     } else if (powerUp.type == 'second') {
-      return '${(reducedFormatNumber(double.parse((multi - 1).toStringAsFixed(2))))} x Aliens/s';
+      return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Aliens/s';
     }
     return '';
   }
