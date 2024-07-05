@@ -124,12 +124,14 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
     }
   }
 
-  String _formatPowerUpType(PowerUp powerUp, GameState gameState) {
+  String _formatPowerUpMultiplier(PowerUp powerUp, GameState gameState) {
     num multi = gameState.getMultiplier((powerUp));
     if (powerUp.type == 'click') {
       return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Aliens / Click';
     } else if (powerUp.type == 'second') {
       return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Aliens/s';
+    } else if (powerUp.type == 'multiplier') {
+      return '${(reducedFormatNumber(double.parse((multi).toStringAsFixed(2))))} x Everything';
     }
     return '';
   }
@@ -137,6 +139,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   void setupWheelTimer() {
     _showSpinningWheel = false;
 
+    _gameState.initialize();
     if (timeHelper.isPreviousDay(_gameState.user!.spinDate)) {
       Duration difference = Duration(seconds: 45);
 
@@ -201,7 +204,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                         columns: const <DataColumn>[
                           DataColumn(label: Text('Amount')),
                           DataColumn(label: Text('Name')),
-                          DataColumn(label: Text('Type')),
+                          DataColumn(label: Text('Multiplier')),
                         ],
                         rows: gameState.powerUps
                             .where((powerUp) => powerUp.purchaseCount > 0)
@@ -211,7 +214,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
                               DataCell(Text('${powerUp.purchaseCount}')),
                               DataCell(Text(powerUp.display_name)),
                               DataCell(
-                                  Text(_formatPowerUpType(powerUp, gameState))),
+                                  Text(_formatPowerUpMultiplier(powerUp, gameState))),
                             ],
                           );
                         }).toList(),
