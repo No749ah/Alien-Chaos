@@ -9,11 +9,21 @@ class GameState extends ChangeNotifier {
   User? _user;
   List<PowerUp> _powerUps = [];
   Timer? _timer;
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final DatabaseHelper _dbHelper;
+
+  GameState({DatabaseHelper? dbHelper}) : _dbHelper = dbHelper ?? DatabaseHelper.instance;
 
   User? get user => _user;
+  set user(User? user) {
+    _user = user;
+    notifyListeners();
+  }
 
   List<PowerUp> get powerUps => _powerUps;
+  set powerUps(List<PowerUp> powerUps) {
+    _powerUps = powerUps;
+    notifyListeners();
+  }
 
   Future<void> initialize() async {
     _user = await _dbHelper.fetchUser();
@@ -66,16 +76,13 @@ class GameState extends ChangeNotifier {
   }
 
   num getMultiplier(PowerUp powerUp) {
-    return pow(powerUp.multiplier, powerUp.purchaseCount) *
-        (user?.prestige ?? 1.0);
+    return pow(powerUp.multiplier, powerUp.purchaseCount) * (user?.prestige ?? 1.0);
   }
 
   Future<void> executeAlienIncrement() async {
     if (_user != null) {
       double aliensPerClick = calculateAliensPerClick();
-
       if (aliensPerClick < 1) aliensPerClick = 1;
-
       _user!.aliens += aliensPerClick;
       await _dbHelper.updateUser(_user);
       notifyListeners();
@@ -92,8 +99,7 @@ class GameState extends ChangeNotifier {
     if (_user != null && _user!.aliens >= currentCost) {
       _user!.aliens -= currentCost;
       powerUp.purchaseCount += 1;
-      await _dbHelper.updatePowerUpPurchaseCount(
-          powerUp.id, powerUp.purchaseCount);
+      await _dbHelper.updatePowerUpPurchaseCount(powerUp.id, powerUp.purchaseCount);
       await _dbHelper.updateUser(_user);
       notifyListeners();
       initialize();
@@ -112,32 +118,25 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  double calculatePrestigePoints(double totalAliens, int totalPowerUps,
-      double prestigeMultiplier, double currentPrestige) {
-    double basePoints =
-        (log(totalAliens + 1) + totalPowerUps) * prestigeMultiplier;
+  double calculatePrestigePoints(double totalAliens, int totalPowerUps, double prestigeMultiplier, double currentPrestige) {
+    double basePoints = (log(totalAliens + 1) + totalPowerUps) * prestigeMultiplier;
     double bonusPoints = totalPowerUps * 0.25;
     num divisor = currentPrestige < 1 ? 1 : currentPrestige;
-
     return ((basePoints + bonusPoints) / divisor);
   }
 
   Future<void> prestige() async {
     if (_user != null) {
       double totalAliens = _user!.aliens;
-      int totalPowerUps =
-          powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
+      int totalPowerUps = powerUps.fold(0, (sum, powerUp) => sum + powerUp.purchaseCount);
       double prestigeMultiplier = 0.01;
-
-      double prestigePoints = calculatePrestigePoints(
-          totalAliens, totalPowerUps, prestigeMultiplier, _user!.prestige);
+      double prestigePoints = calculatePrestigePoints(totalAliens, totalPowerUps, prestigeMultiplier, _user!.prestige);
 
       _user!.prestige += prestigePoints;
       _user!.aliens = 0;
 
       for (var powerUp in powerUps) {
         powerUp.purchaseCount = 0;
-
         await _dbHelper.updatePowerUp(powerUp);
       }
 

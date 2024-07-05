@@ -28,8 +28,8 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      #- name: Test
-      #  run: flutter test
+      - name: Run tests
+        run: flutter test
 
   release:
     runs-on: ubuntu-latest
