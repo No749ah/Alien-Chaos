@@ -28,89 +28,29 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      #- name: Test
-      #  run: flutter test
+#      - name: Run tests
+#        run: flutter test
 
-  release:
-    runs-on: ubuntu-latest
-    #if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v2
+      - name: Increase version (only on main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          version=$(grep "version:" pubspec.yaml | cut -d':' -f2 | tr -d '[:space:]')
+          new_version=$(echo $version | awk -F '.' '{print $1+1"."$2"."$3}')
+          sed -i "s/version:.*/version: $new_version/" pubspec.yaml
+          git config --global user.email "github-actions-bot@example.com"
+          git config --global user.name "GitHub Actions Bot"
+          git add pubspec.yaml
+          git commit -m "Bump version to $new_version"
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: '17'
-
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build APK
+      - name: Build APK (only on main branch)
+        if: github.ref == 'refs/heads/main'
         run: |
           flutter build apk --release
           mkdir -p build/apk
           mv build/app/outputs/flutter-apk/app-release.apk build/apk/
-
-      - name: Publish APK as artifact
+      - name: Publish APK as artifact (only on main branch)
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v2
         with:
           name: apk
           path: build/apk/app-release.apk
-
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: apk
-          path: build/apk
-
-      - name: Fetch Latest Release Version
-        id: fetch_latest_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          latest_version=$(gh release view --json tagName -q ".tagName" | sed 's/v//')
-          echo "LATEST_VERSION=$latest_version" >> $GITHUB_ENV
-
-      - name: Calculate Next Version
-        id: calculate_next_version
-        run: |
-          IFS='.' read -r major minor <<< "${LATEST_VERSION}"
-          next_version="1.$((minor + 1))"
-          echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
-
-      - name: Check if Release Exists
-        id: check_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          if gh release view ${{ env.NEXT_VERSION }}; then
-            gh release delete ${{ env.NEXT_VERSION }} -y
-          fi
-          echo "release_exists=true" >> $GITHUB_ENV
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          tag_name: ${{ env.NEXT_VERSION }}
-          release_name: Release ${{ env.NEXT_VERSION }}
-          body: |
-            Release notes for version ${{ env.NEXT_VERSION }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/apk/app-release.apk
-          asset_name: app-release.apk
-          asset_content_type: application/vnd.android.package-archive
