@@ -64,8 +64,8 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   @override
   void didPopNext() {
     super.didPopNext();
+    _gameState.initialize();
     if (_shouldReload) {
-      initializePage();
       _shouldReload = false;
     }
   }
@@ -89,7 +89,6 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   Future<void> _navigateToSpinWheel() async {
-    _shouldReload = true;
     try {
       await Navigator.push(
         context,
