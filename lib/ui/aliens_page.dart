@@ -89,6 +89,7 @@ class _AliensPageState extends State<AliensPage> with RouteAware {
   }
 
   Future<void> _navigateToSpinWheel() async {
+    _showSpinningWheel = false;
     try {
       await Navigator.push(
         context,

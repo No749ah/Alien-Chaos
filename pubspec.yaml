@@ -37,6 +37,7 @@ flutter_icons:
 dependency_overrides:
   material_color_utilities: ^0.8.0
   meta: 1.12.0
+  sensors_plus: ^4.0.2
 
 flutter:
   uses-material-design: true
