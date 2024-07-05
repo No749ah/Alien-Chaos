@@ -27,5 +27,19 @@ void main() {
       PowerUp powerUp = PowerUp(baseCost: 100, purchaseCount: 3, id: 1, name: 'Test', display_name: 'Test1', type: 'second', multiplier: 0);
       expect(gameState.getMultiplier(powerUp), 0);
     });
+
+    test("Test No Exception if user is null", () {
+      gameState.user = null;
+
+      PowerUp powerUp = PowerUp(baseCost: 100, purchaseCount: 3, id: 1, name: 'Test', display_name: 'Test1', type: 'second', multiplier: 1.2);
+      expect(gameState.getMultiplier(powerUp), 1.728);
+    });
+
+    test("Test No Exception if powerup has invalid type", () {
+      gameState.user = User(name: "Test-User", aliens: 123, prestige: 1, spinDate: DateTime(0000, 1, 1));
+
+      PowerUp powerUp = PowerUp(baseCost: 100, purchaseCount: 1, id: 1, name: 'Test', display_name: 'Test1', type: 'second', multiplier: 1.2);
+      expect(gameState.getMultiplier(powerUp), 1.2);
+    });
   });
 }
