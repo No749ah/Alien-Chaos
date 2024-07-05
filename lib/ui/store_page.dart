@@ -45,7 +45,13 @@ class _PowerUpShopState extends State<PowerUpShop> {
   }
 
   Future<void> _performPrestige() async {
-    await _gameState.prestige();
+    if(!await _gameState.prestige()){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Save Error!"),
+        ),
+      );
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Prestige activated!')),
     );
