@@ -28,19 +28,33 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      - name: Build APK (only on main branch)
-        if: github.ref == 'refs/heads/main'
+      #- name: Test
+      #  run: flutter test
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    #if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build APK
         run: |
           flutter build apk --release
           mkdir -p build/apk
           mv build/app/outputs/flutter-apk/app-release.apk build/apk/
 
-      - name: Publish APK as artifact (only on main branch)
-        if: github.ref == 'refs/heads/main'
+      - name: Publish APK as artifact
         uses: actions/upload-artifact@v2
         with:
           name: apk
           path: build/apk/app-release.apk
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: apk
+          path: build/apk
 
       - name: Fetch Latest Release Version
         id: fetch_latest_release
@@ -54,12 +68,11 @@ jobs:
         id: calculate_next_version
         run: |
           IFS='.' read -r major minor <<< "${LATEST_VERSION}"
-          next_version="${major}.$((minor + 1))"
+          next_version="1.$((minor + 1))"
           echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
 
       - name: Check if Release Exists
         id: check_release
-        if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -68,8 +81,7 @@ jobs:
           fi
           echo "release_exists=true" >> $GITHUB_ENV
 
-      - name: Create GitHub Release (only on main branch)
-        if: github.ref == 'refs/heads/main'
+      - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -83,7 +95,6 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
