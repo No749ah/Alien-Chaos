@@ -29,14 +29,14 @@ jobs:
         run: flutter analyze
 
       - name: Build APK (only on main branch)
-        if: github.ref == 'refs/heads/main'
+        #if: github.ref == 'refs/heads/main'
         run: |
           flutter build apk --release
           mkdir -p build/apk
           mv build/app/outputs/flutter-apk/app-release.apk build/apk/
 
       - name: Publish APK as artifact (only on main branch)
-        if: github.ref == 'refs/heads/main'
+        #if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v2
         with:
           name: apk
@@ -59,7 +59,7 @@ jobs:
 
       - name: Check if Release Exists
         id: check_release
-        if: github.ref == 'refs/heads/main'
+        #if: github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -69,7 +69,7 @@ jobs:
           echo "release_exists=true" >> $GITHUB_ENV
 
       - name: Create GitHub Release (only on main branch)
-        if: github.ref == 'refs/heads/main'
+        #if: github.ref == 'refs/heads/main'
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -83,7 +83,7 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        if: github.ref == 'refs/heads/main'
+        #if: github.ref == 'refs/heads/main'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
