@@ -87,6 +87,7 @@ class DatabaseHelper {
         'name': 'daily_multiplier',
         'display_name': 'Daily Multiplier',
         'type': 'multiplier',
+        'multiplier': 1.5,
         'cost': 0,
         'purchase_count': 0,
         'purchasable': 0,
