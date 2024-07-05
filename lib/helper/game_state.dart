@@ -63,7 +63,7 @@ class GameState extends ChangeNotifier {
 
   double calculateAliensPerClick() {
     var aliensPerClick = calculatePowerupMultiplier(['click', 'multiplier']);
-    return aliensPerClick < 1 ? 1 : aliensPerClick;
+    return aliensPerClick < 1 ? 1 * _user!.prestige : aliensPerClick;
   }
 
   double calculatePowerupMultiplier(List<String> powerUpTypes) {

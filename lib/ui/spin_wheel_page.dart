@@ -95,6 +95,10 @@ class _SpinWheelPageState extends State<SpinWheelPage> {
     }
   }
 
+  setAccelerationSamplingPeriod() {
+    return;
+  }
+
   Future<void> _applyPowerup(int id) async {
     var powerUps = widget.gameState.powerUps;
     var powerUp = powerUps.firstWhere((pu) => pu.id == id);
