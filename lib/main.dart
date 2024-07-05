@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'db/database_helper.dart';
 import 'helper/notification.dart';
 import 'models/user.dart';
@@ -8,6 +9,10 @@ import 'ui/loading_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   await DatabaseHelper.instance.database;
 
   var notificationController = NotificationController();

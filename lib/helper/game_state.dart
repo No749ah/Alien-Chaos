@@ -58,7 +58,10 @@ class GameState extends ChangeNotifier {
   }
 
   double calculateAliensPerSecond() {
-    return calculatePowerupMultiplier(['second', 'multiplier']);
+    return _powerUps.any(
+            (powerup) => powerup.type == "second" && powerup.purchaseCount > 0)
+        ? calculatePowerupMultiplier(['second', 'multiplier'])
+        : 0;
   }
 
   double calculateAliensPerClick() {
